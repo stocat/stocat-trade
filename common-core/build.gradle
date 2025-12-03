@@ -1,0 +1,7 @@
+// Build as a plain library JAR
+bootJar { enabled = false }
+jar { enabled = true }
+
+dependencies {
+    // no-op; shared types only
+}

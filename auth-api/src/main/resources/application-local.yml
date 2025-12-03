@@ -1,0 +1,35 @@
+server:
+  port: 8085
+
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/stocat?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=UTF-8
+    username: user
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6380
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    show-sql: true
+
+
+jwt:
+  access-exp-minutes: 5
+  refresh-exp-days: 7
+  secret:
+    watch-interval: 5000
