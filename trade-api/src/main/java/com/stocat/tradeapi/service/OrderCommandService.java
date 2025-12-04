@@ -1,10 +1,10 @@
 package com.stocat.tradeapi.service;
 
-import com.stocat.tradeapi.domain.Order;
-import com.stocat.tradeapi.domain.OrderSide;
-import com.stocat.tradeapi.domain.OrderStatus;
-import com.stocat.tradeapi.infrastructure.AssetDto;
-import com.stocat.tradeapi.repository.OrderRepository;
+import com.stocat.common.domain.order.Order;
+import com.stocat.common.domain.TradeSide;
+import com.stocat.common.domain.order.OrderStatus;
+import com.stocat.tradeapi.infrastructure.dto.AssetDto;
+import com.stocat.common.repository.OrderRepository;
 import com.stocat.tradeapi.service.dto.command.BuyOrderCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,12 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderCommandService {
     private final OrderRepository orderRepository;
 
-    public Order createBuyOrder(BuyOrderCommand command, AssetDto asset) {
+    public Order createBuyOrder(BuyOrderCommand command) {
         Order order = Order.builder()
                 .memberId(command.memberId())
-                .assetId(asset.id())
-                .side(OrderSide.BUY)
-                .currency(asset.currency())
+                .assetId(command.asset().id())
+                .currency(command.asset().currency())
+                .category(command.asset().category())
+                .side(TradeSide.BUY)
                 .status(OrderStatus.PENDING)
                 .quantity(command.quantity())
                 .price(command.price())

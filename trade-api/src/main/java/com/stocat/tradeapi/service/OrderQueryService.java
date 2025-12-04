@@ -1,8 +1,8 @@
 package com.stocat.tradeapi.service;
 
-import com.stocat.tradeapi.domain.Order;
-import com.stocat.tradeapi.domain.OrderStatus;
-import com.stocat.tradeapi.repository.OrderRepository;
+import com.stocat.common.domain.order.Order;
+import com.stocat.common.domain.order.OrderStatus;
+import com.stocat.common.repository.OrderRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

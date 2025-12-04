@@ -1,14 +1,16 @@
 package com.stocat.tradeapi.service.dto.command;
 
-import com.stocat.common.domain.asset.domain.AssetsCategory;
+import com.stocat.common.domain.AssetsCategory;
+import com.stocat.tradeapi.infrastructure.dto.AssetDto;
+import lombok.Builder;
 
 import java.math.BigDecimal;
 
+@Builder
 public record BuyOrderCommand(
         Long memberId,
-        String ticker,
+        AssetDto asset,
         BigDecimal quantity,
-        BigDecimal price,
-        AssetsCategory category
+        BigDecimal price
 ) {
 }

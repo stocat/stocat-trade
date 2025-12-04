@@ -1,9 +1,9 @@
 package com.stocat.tradeapi.service.dto;
 
-import com.stocat.common.domain.asset.domain.Currency;
-import com.stocat.tradeapi.domain.Order;
-import com.stocat.tradeapi.domain.OrderSide;
-import com.stocat.tradeapi.domain.OrderStatus;
+import com.stocat.common.domain.Currency;
+import com.stocat.common.domain.order.Order;
+import com.stocat.common.domain.TradeSide;
+import com.stocat.common.domain.order.OrderStatus;
 import lombok.Builder;
 
 import java.math.BigDecimal;
@@ -14,7 +14,7 @@ public record OrderDto(
         Long id,
         Long memberId,
         Integer assetId,
-        OrderSide side,
+        TradeSide side,
         Currency currency,
         OrderStatus status,
         BigDecimal quantity,
