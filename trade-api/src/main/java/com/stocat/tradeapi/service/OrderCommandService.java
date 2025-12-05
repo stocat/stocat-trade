@@ -1,9 +1,8 @@
 package com.stocat.tradeapi.service;
 
-import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.TradeSide;
+import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
-import com.stocat.tradeapi.infrastructure.dto.AssetDto;
 import com.stocat.common.repository.OrderRepository;
 import com.stocat.tradeapi.service.dto.command.BuyOrderCommand;
 import lombok.RequiredArgsConstructor;

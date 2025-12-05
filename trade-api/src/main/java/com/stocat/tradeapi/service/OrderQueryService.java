@@ -1,5 +1,7 @@
 package com.stocat.tradeapi.service;
 
+import com.stocat.common.domain.AssetsCategory;
+import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.repository.OrderRepository;
@@ -18,19 +20,22 @@ import java.util.List;
 public class OrderQueryService {
     private final OrderRepository orderRepository;
 
-    public List<Order> findPendingOrders(
-            @NonNull Long memberId
-
+    public List<Order> findPendingBuyOrdersInCategory(
+            @NonNull Long memberId,
+            @NonNull AssetsCategory category
     ) {
-        return orderRepository.findAllByMemberIdAndStatus(memberId, OrderStatus.PENDING);
+        return orderRepository.findAllByMemberIdAndSideAndCategoryAndStatus(
+                memberId, TradeSide.BUY, category, OrderStatus.PENDING);
     }
 
-    public List<Order> findTodayExecutedOrders(
+    public List<Order> findTodayExecutedBuyOrdersInCategory(
             @NonNull Long memberId,
+            @NonNull AssetsCategory category,
             @NonNull LocalDateTime now
     ) {
         LocalDateTime todayStart = now.toLocalDate().atStartOfDay();
         LocalDateTime todayEnd = now.toLocalDate().atTime(LocalTime.MAX);
-        return orderRepository.findAllByMemberIdAndExecutedAtBetween(memberId, todayStart, todayEnd);
+        return orderRepository.findAllByMemberIdAndSideAndCategoryAndExecutedAtBetween
+                (memberId, TradeSide.BUY, category, todayStart, todayEnd);
     }
 }

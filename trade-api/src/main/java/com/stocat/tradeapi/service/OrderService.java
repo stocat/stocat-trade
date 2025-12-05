@@ -7,7 +7,6 @@ import com.stocat.common.domain.order.Order;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.infrastructure.dto.AssetDto;
 import com.stocat.tradeapi.infrastructure.MatchApiClient;
-import com.stocat.tradeapi.infrastructure.QuoteApiClient;
 import com.stocat.tradeapi.infrastructure.dto.BuyMatchRequest;
 import com.stocat.tradeapi.service.dto.OrderDto;
 import com.stocat.tradeapi.service.dto.command.BuyOrderCommand;
@@ -58,20 +57,20 @@ public class OrderService implements OrderServicePort {
         if (existsPendingOrderInCategory(command.memberId(), asset.category())) {
             throw new ApiException(TradeErrorCode.PENDING_ORDER_EXISTS_IN_CATEGORY);
         }
-        if (existsExecutedOrderInCategory(command.memberId(), asset.category(), requestTime)) {
+        if (existsTodayExecutedOrderInCategory(command.memberId(), asset.category(), requestTime)) {
             throw new ApiException(TradeErrorCode.EXECUTED_TODAY_ORDER_EXISTS_IN_CATEGORY);
         }
     }
 
     private boolean existsPendingOrderInCategory(Long memberId, AssetsCategory category) {
-        List<Order> orders = orderQueryService.findPendingOrders(memberId);
+        List<Order> orders = orderQueryService.findPendingBuyOrdersInCategory(memberId, category);
 
         return orders.stream().anyMatch(
                 pendingOrder -> category.equals(pendingOrder.getCategory()));
     }
 
-    private boolean existsExecutedOrderInCategory(Long memberId, AssetsCategory category, LocalDateTime requestTime) {
-        List<Order> orders = orderQueryService.findTodayExecutedOrders(memberId, requestTime);
+    private boolean existsTodayExecutedOrderInCategory(Long memberId, AssetsCategory category, LocalDateTime requestTime) {
+        List<Order> orders = orderQueryService.findTodayExecutedBuyOrdersInCategory(memberId, category, requestTime);
 
         return orders.stream().anyMatch(
                 excutedOrder -> category.equals(excutedOrder.getCategory()));
