@@ -12,6 +12,7 @@ import com.stocat.tradeapi.service.dto.OrderDto;
 import com.stocat.tradeapi.service.dto.command.BuyOrderCommand;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +25,7 @@ public class OrderService implements OrderServicePort {
     private final OrderQueryService orderQueryService;
     private final OrderCommandService orderCommandService;
 
-    private final MatchApiClient matchApiClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public OrderDto placeBuyOrder(BuyOrderCommand command) {
@@ -33,19 +34,15 @@ public class OrderService implements OrderServicePort {
 
         Order order = orderCommandService.createBuyOrder(command);
 
-        BuyMatchRequest request = BuyMatchRequest.builder()
-                .memberId(command.memberId())
-                .ticker(command.asset().ticker())
-                .quantity(command.quantity())
-                .price(command.price())
-                .build();
 
-        ApiResponse<?> response = matchApiClient.buy(request);
         if (response.code() != ApiResponse.SUCCESS_CODE) {
             throw new ApiException(TradeErrorCode.BUY_API_REQUEST_FAILED);
         }
 
-        return OrderDto.from(order);
+        OrderDto orderDto = OrderDto.from(order);
+        eventPublisher.publishEvent(order);
+
+        return orderDto;
     }
 
     public void validateBuyOrder(BuyOrderCommand command, LocalDateTime requestTime) {

@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 @Builder
 public record BuyMatchRequest(
         Long memberId,
-        String ticker,
+        Integer assetId,
         BigDecimal quantity,
         BigDecimal price
 ) {

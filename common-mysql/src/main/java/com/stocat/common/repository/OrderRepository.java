@@ -15,4 +15,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findAllByMemberIdAndSideAndCategoryAndExecutedAtBetween(
             Long memberId, TradeSide side, AssetsCategory category, LocalDateTime start, LocalDateTime end);
+
+
 }
