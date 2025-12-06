@@ -11,6 +11,9 @@ public enum TradeErrorCode implements ErrorCode {
     PENDING_ORDER_EXISTS_IN_CATEGORY(ErrorDomain.TRADE_API.offset() + 4, "해당 카테고리에 매수 대기 중인 종목이 있습니다."),
     EXECUTED_TODAY_ORDER_EXISTS_IN_CATEGORY(ErrorDomain.TRADE_API.offset() + 5, "해당 카테고리에 오늘 이미 체결된 거래가 있습니다."),
     BUY_API_REQUEST_FAILED(ErrorDomain.TRADE_API.offset() + 6, "매수 요청에 실패했습니다."),
+    ORDER_PERMISSION_DENIED(ErrorDomain.TRADE_API.offset() + 7, "주문 요청 권한이 없습니다."),
+    MATCHING_ENGINE_ERROR(ErrorDomain.TRADE_API.offset() + 50, "체결 엔진 오류로 주문을 처리하지 못했습니다."),
+    ORDER_NOT_FOUND(ErrorDomain.TRADE_API.offset() + 90, "존재하지 않는 주문입니다."),
     ;
 
     private final int code;

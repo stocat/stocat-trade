@@ -13,12 +13,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class OrderQueryService {
     private final OrderRepository orderRepository;
+
+    public Optional<Order> findById(@NonNull Long orderId) {
+        return orderRepository.findById(orderId);
+    }
 
     public List<Order> findPendingBuyOrdersInCategory(
             @NonNull Long memberId,

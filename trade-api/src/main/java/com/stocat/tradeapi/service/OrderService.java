@@ -1,16 +1,21 @@
 package com.stocat.tradeapi.service;
 
 import com.stocat.common.domain.AssetsCategory;
+import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.exception.ApiException;
+import com.stocat.common.repository.OrderRepository;
 import com.stocat.common.response.ApiResponse;
 import com.stocat.common.domain.order.Order;
 import com.stocat.tradeapi.exception.TradeErrorCode;
+import com.stocat.tradeapi.infrastructure.ApiResponseCode;
 import com.stocat.tradeapi.infrastructure.dto.AssetDto;
 import com.stocat.tradeapi.infrastructure.MatchApiClient;
 import com.stocat.tradeapi.infrastructure.dto.BuyMatchRequest;
 import com.stocat.tradeapi.service.dto.OrderDto;
 import com.stocat.tradeapi.service.dto.command.BuyOrderCommand;
+import com.stocat.tradeapi.service.dto.command.OrderCancelCommand;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -20,11 +25,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class OrderService implements OrderServicePort {
+
+
     private final OrderQueryService orderQueryService;
     private final OrderCommandService orderCommandService;
 
+    private final MatchApiClient matchApiClient;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -34,13 +43,10 @@ public class OrderService implements OrderServicePort {
 
         Order order = orderCommandService.createBuyOrder(command);
 
-
-        if (response.code() != ApiResponse.SUCCESS_CODE) {
-            throw new ApiException(TradeErrorCode.BUY_API_REQUEST_FAILED);
-        }
-
         OrderDto orderDto = OrderDto.from(order);
         eventPublisher.publishEvent(order);
+
+        // TODO: 사용 가능 포인트(현금) 감소 로직 추가
 
         return orderDto;
     }
@@ -71,6 +77,27 @@ public class OrderService implements OrderServicePort {
 
         return orders.stream().anyMatch(
                 excutedOrder -> category.equals(excutedOrder.getCategory()));
+    }
+
+    @Transactional
+    public OrderDto cancelOrder(OrderCancelCommand command) {
+        Order order = orderQueryService.findById(command.orderId())
+                .orElseThrow(() -> new ApiException(TradeErrorCode.ORDER_NOT_FOUND));
+
+        if (!order.getMemberId().equals(command.memberId())) {
+            throw new ApiException(TradeErrorCode.ORDER_PERMISSION_DENIED);
+        }
+
+        ApiResponse<?> apiResponse = matchApiClient.cancelOrder(command.orderId());
+
+        if (apiResponse.code() == ApiResponseCode.ORDER_ALREADY_CANCELED) {
+            log.warn("거래소에서는 이미 취소된 거래건 입니다. order id: {}", command.orderId());
+        } else if (apiResponse.code() != ApiResponse.SUCCESS_CODE) {
+            throw new ApiException(TradeErrorCode.MATCHING_ENGINE_ERROR);
+        }
+
+        order = orderCommandService.updateOrderStatus(order.getId(), OrderStatus.CANCELLED);
+        return OrderDto.from(order);
     }
 
     private void validateSellOrder(OrderDto orderDto) {

@@ -63,4 +63,13 @@ public class Order extends BaseEntity {
 
     @Column(nullable = true)
     private LocalDateTime executedAt;
+
+    public void updateStatus(OrderStatus status) {
+        if (!this.status.canTransitionTo(status)) {
+            throw new IllegalStateException(this.status + "에서" + status + "상태로 변경할 수 없습니다.");
+        }
+        this.status = status;
+    }
+
+
 }

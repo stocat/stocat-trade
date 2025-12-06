@@ -1,6 +1,5 @@
 package com.stocat.tradeapi.service.dto.command;
 
-import com.stocat.common.domain.AssetsCategory;
 import com.stocat.tradeapi.infrastructure.dto.AssetDto;
 import lombok.Builder;
 

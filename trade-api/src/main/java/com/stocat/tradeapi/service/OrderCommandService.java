@@ -3,7 +3,9 @@ package com.stocat.tradeapi.service;
 import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
+import com.stocat.common.exception.ApiException;
 import com.stocat.common.repository.OrderRepository;
+import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.service.dto.command.BuyOrderCommand;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,10 @@ public class OrderCommandService {
             @NonNull Long orderId,
             @NonNull OrderStatus status
     ) {
-        orderRepository.findById(orderId);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ApiException(TradeErrorCode.ORDER_NOT_FOUND));
+
+        order.updateStatus(status);
+        return orderRepository.save(order);
     }
 }
