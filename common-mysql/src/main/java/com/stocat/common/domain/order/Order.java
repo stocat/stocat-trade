@@ -48,6 +48,10 @@ public class Order extends BaseEntity {
     private TradeSide side;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private OrderType type;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 3)
     private Currency currency;
 
@@ -58,11 +62,8 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private BigDecimal quantity;
 
-    @Column(nullable = false)
-    private BigDecimal price;
-
     @Column(nullable = true)
-    private LocalDateTime executedAt;
+    private BigDecimal price;
 
     public void updateStatus(OrderStatus status) {
         if (!this.status.canTransitionTo(status)) {
@@ -70,6 +71,4 @@ public class Order extends BaseEntity {
         }
         this.status = status;
     }
-
-
 }

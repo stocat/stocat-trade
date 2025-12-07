@@ -25,7 +25,7 @@ public class OrderCommandService {
                 .currency(command.asset().currency())
                 .category(command.asset().category())
                 .side(TradeSide.BUY)
-                .status(OrderStatus.SUBMITTED)
+                .status(OrderStatus.CREATED)
                 .quantity(command.quantity())
                 .price(command.price())
                 .build();

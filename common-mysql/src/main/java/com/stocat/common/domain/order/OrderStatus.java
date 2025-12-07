@@ -1,17 +1,17 @@
 package com.stocat.common.domain.order;
 
 public enum OrderStatus {
-    SUBMITTED,
+    CREATED,
     PENDING,
     FILLED,
-    CANCELLED,
+    CANCELED,
     REJECTED
     ;
 
     public boolean canTransitionTo(OrderStatus next) {
         return switch (this) {
-            case SUBMITTED -> next == PENDING || next == CANCELLED;
-            case PENDING -> next == FILLED || next == CANCELLED || next == REJECTED;
+            case CREATED -> next == PENDING || next == CANCELED;
+            case PENDING -> next == FILLED || next == CANCELED || next == REJECTED;
             default -> false;
         };
     }

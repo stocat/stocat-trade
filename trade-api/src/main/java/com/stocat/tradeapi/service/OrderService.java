@@ -3,14 +3,13 @@ package com.stocat.tradeapi.service;
 import com.stocat.common.domain.AssetsCategory;
 import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.exception.ApiException;
-import com.stocat.common.repository.OrderRepository;
 import com.stocat.common.response.ApiResponse;
 import com.stocat.common.domain.order.Order;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.infrastructure.ApiResponseCode;
+import com.stocat.tradeapi.infrastructure.QuoteApiClient;
 import com.stocat.tradeapi.infrastructure.dto.AssetDto;
 import com.stocat.tradeapi.infrastructure.MatchApiClient;
-import com.stocat.tradeapi.infrastructure.dto.BuyMatchRequest;
 import com.stocat.tradeapi.service.dto.OrderDto;
 import com.stocat.tradeapi.service.dto.command.BuyOrderCommand;
 import com.stocat.tradeapi.service.dto.command.OrderCancelCommand;
@@ -27,17 +26,18 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class OrderService implements OrderServicePort {
-
-
+public class OrderService {
     private final OrderQueryService orderQueryService;
     private final OrderCommandService orderCommandService;
 
+    private final QuoteApiClient quoteApiClient;
     private final MatchApiClient matchApiClient;
+
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public OrderDto placeBuyOrder(BuyOrderCommand command) {
+        command = enrichBuyOrderCommand(command);
         LocalDateTime requestTime = LocalDateTime.now();
         validateBuyOrder(command, requestTime);
 
@@ -49,6 +49,17 @@ public class OrderService implements OrderServicePort {
         // TODO: 사용 가능 포인트(현금) 감소 로직 추가
 
         return orderDto;
+    }
+
+    public BuyOrderCommand enrichBuyOrderCommand(BuyOrderCommand command) {
+        AssetDto asset = quoteApiClient.fetchAsset(command.asset().symbol());
+
+        return BuyOrderCommand.builder()
+                .memberId(command.memberId())
+                .asset(asset)
+                .quantity(command.quantity())
+                .price(command.price())
+                .build();
     }
 
     public void validateBuyOrder(BuyOrderCommand command, LocalDateTime requestTime) {
@@ -96,7 +107,7 @@ public class OrderService implements OrderServicePort {
             throw new ApiException(TradeErrorCode.MATCHING_ENGINE_ERROR);
         }
 
-        order = orderCommandService.updateOrderStatus(order.getId(), OrderStatus.CANCELLED);
+        order = orderCommandService.updateOrderStatus(order.getId(), OrderStatus.CANCELED);
         return OrderDto.from(order);
     }
 
