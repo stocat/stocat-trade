@@ -44,16 +44,16 @@ public class Order extends BaseEntity {
     private AssetsCategory category;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 3)
+    private Currency currency;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private TradeSide side;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private OrderType type;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 3)
-    private Currency currency;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

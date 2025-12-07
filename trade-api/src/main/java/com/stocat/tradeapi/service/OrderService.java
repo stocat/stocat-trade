@@ -5,6 +5,7 @@ import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.exception.ApiException;
 import com.stocat.common.response.ApiResponse;
 import com.stocat.common.domain.order.Order;
+import com.stocat.tradeapi.event.BuyOrderCreatedEvent;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.infrastructure.ApiResponseCode;
 import com.stocat.tradeapi.infrastructure.QuoteApiClient;
@@ -30,37 +31,26 @@ public class OrderService {
     private final OrderQueryService orderQueryService;
     private final OrderCommandService orderCommandService;
 
-    private final QuoteApiClient quoteApiClient;
     private final MatchApiClient matchApiClient;
 
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public OrderDto placeBuyOrder(BuyOrderCommand command) {
-        command = enrichBuyOrderCommand(command);
         LocalDateTime requestTime = LocalDateTime.now();
         validateBuyOrder(command, requestTime);
 
         Order order = orderCommandService.createBuyOrder(command);
 
-        OrderDto orderDto = OrderDto.from(order);
-        eventPublisher.publishEvent(order);
+        BuyOrderCreatedEvent event = BuyOrderCreatedEvent.from(order);
+        eventPublisher.publishEvent(event);
 
         // TODO: 사용 가능 포인트(현금) 감소 로직 추가
 
-        return orderDto;
+        return OrderDto.from(order);
     }
 
-    public BuyOrderCommand enrichBuyOrderCommand(BuyOrderCommand command) {
-        AssetDto asset = quoteApiClient.fetchAsset(command.asset().symbol());
 
-        return BuyOrderCommand.builder()
-                .memberId(command.memberId())
-                .asset(asset)
-                .quantity(command.quantity())
-                .price(command.price())
-                .build();
-    }
 
     public void validateBuyOrder(BuyOrderCommand command, LocalDateTime requestTime) {
         AssetDto asset = command.asset();

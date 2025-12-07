@@ -29,7 +29,7 @@ public class OrderController {
     @PostMapping("/buy")
     @Operation(summary = "매수 주문 생성")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "매수 주문 생성 성공")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "현금 부족 / 장 마감")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "현금 부족, 장 마감 등")
     public ResponseEntity<ApiResponse<OrderResponse>> placeBuyOrder(
             @RequestParam Long memberId,
             @Valid @RequestBody BuyOrderRequest request
