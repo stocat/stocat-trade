@@ -12,10 +12,4 @@ public record MatchBuyResult (
     public boolean isRejected() {
         return result.equals("rejected");
     }
-
-    public boolean isFailure() {
-        return result.equals("failure");
-    }
-
-
 }
