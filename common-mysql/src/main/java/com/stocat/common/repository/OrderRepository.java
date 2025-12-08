@@ -14,14 +14,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    List<Order> findAllByMemberIdAndSideAndCategoryAndStatus(
+    boolean existsByMemberIdAndSideAndCategoryAndStatus(
             Long memberId, TradeSide side, AssetsCategory category, OrderStatus status);
 
-    List<Order> findAllByMemberIdAndSideAndCategoryAndExecutedAtBetween(
+    boolean existsByMemberIdAndSideAndCategoryAndCreatedAtBetween(
             Long memberId, TradeSide side, AssetsCategory category, LocalDateTime start, LocalDateTime end);
-
-
-    @Modifying
-    @Query("UPDATE Order o SET o.status = :status WHERE o.id = :id")
-    int updateOrderStatus(@Param("id") Long id, @Param("status") OrderStatus status);
 }

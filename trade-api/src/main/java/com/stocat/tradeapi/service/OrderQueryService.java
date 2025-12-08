@@ -4,7 +4,9 @@ import com.stocat.common.domain.AssetsCategory;
 import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
+import com.stocat.common.exception.ApiException;
 import com.stocat.common.repository.OrderRepository;
+import com.stocat.tradeapi.exception.TradeErrorCode;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -21,26 +22,27 @@ import java.util.Optional;
 public class OrderQueryService {
     private final OrderRepository orderRepository;
 
-    public Optional<Order> findById(@NonNull Long orderId) {
-        return orderRepository.findById(orderId);
+    public Order findById(@NonNull Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new ApiException(TradeErrorCode.ORDER_NOT_FOUND));
     }
 
-    public List<Order> findPendingBuyOrdersInCategory(
+    public boolean existsPendingBuyOrdersInCategory(
             @NonNull Long memberId,
             @NonNull AssetsCategory category
     ) {
-        return orderRepository.findAllByMemberIdAndSideAndCategoryAndStatus(
+        return orderRepository.existsByMemberIdAndSideAndCategoryAndStatus(
                 memberId, TradeSide.BUY, category, OrderStatus.PENDING);
     }
 
-    public List<Order> findTodayExecutedBuyOrdersInCategory(
+    public boolean existsTodayExecutedBuyOrdersInCategory(
             @NonNull Long memberId,
             @NonNull AssetsCategory category,
             @NonNull LocalDateTime now
     ) {
         LocalDateTime todayStart = now.toLocalDate().atStartOfDay();
         LocalDateTime todayEnd = now.toLocalDate().atTime(LocalTime.MAX);
-        return orderRepository.findAllByMemberIdAndSideAndCategoryAndExecutedAtBetween
+        return orderRepository.existsByMemberIdAndSideAndCategoryAndCreatedAtBetween
                 (memberId, TradeSide.BUY, category, todayStart, todayEnd);
     }
 }

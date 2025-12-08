@@ -11,8 +11,8 @@ public record AssetDto(
         AssetsCategory category,
         Currency currency,
         Boolean isActive,
+        Boolean isDaily,
         String koName,
-        String usName,
-        Boolean isDaily
+        String usName
 ) {
 }

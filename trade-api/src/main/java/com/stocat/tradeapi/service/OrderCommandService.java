@@ -34,13 +34,10 @@ public class OrderCommandService {
     }
 
     public Order updateOrderStatus(
-            @NonNull Long orderId,
-            @NonNull OrderStatus status
+            @NonNull Order order,
+            @NonNull OrderStatus targetStatus
     ) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ApiException(TradeErrorCode.ORDER_NOT_FOUND));
-
-        order.updateStatus(status);
+        order.updateStatus(targetStatus);
         return orderRepository.save(order);
     }
 }

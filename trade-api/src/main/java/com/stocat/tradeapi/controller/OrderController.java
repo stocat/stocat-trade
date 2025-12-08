@@ -6,6 +6,7 @@ import com.stocat.tradeapi.controller.dto.BuyOrderRequest;
 import com.stocat.tradeapi.controller.dto.OrderResponse;
 import com.stocat.tradeapi.infrastructure.dto.AssetDto;
 import com.stocat.tradeapi.service.OrderService;
+import com.stocat.tradeapi.service.dto.OrderDto;
 import com.stocat.tradeapi.service.dto.command.BuyOrderCommand;
 import com.stocat.tradeapi.service.dto.command.OrderCancelCommand;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/order")
@@ -34,6 +37,8 @@ public class OrderController {
             @RequestParam Long memberId,
             @Valid @RequestBody BuyOrderRequest request
     ) {
+        LocalDateTime now = LocalDateTime.now();
+        
         OrderType orderType = OrderType.valueOf(request.orderType());
 
         BuyOrderCommand command = BuyOrderCommand.builder()
@@ -42,6 +47,7 @@ public class OrderController {
                 .asset(AssetDto.builder().symbol(request.symbol()).build())
                 .quantity(request.quantity())
                 .price(request.price())
+                .requestTime(now)
                 .build();
 
         OrderResponse response = OrderResponse.from(orderService.placeBuyOrder(command));
@@ -59,7 +65,8 @@ public class OrderController {
     ) {
         OrderCancelCommand command = new OrderCancelCommand(orderId, memberId);
 
-        OrderResponse response = OrderResponse.from(orderService.cancelOrder(command));
+        OrderDto order = orderService.cancelOrder(command);
+        OrderResponse response = OrderResponse.from(order);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }

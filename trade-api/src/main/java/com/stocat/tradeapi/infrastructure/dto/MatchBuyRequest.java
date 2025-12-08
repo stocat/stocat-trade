@@ -5,7 +5,7 @@ import lombok.Builder;
 import java.math.BigDecimal;
 
 @Builder
-public record BuyMatchRequest(
+public record MatchBuyRequest(
         Long memberId,
         Integer assetId,
         BigDecimal quantity,

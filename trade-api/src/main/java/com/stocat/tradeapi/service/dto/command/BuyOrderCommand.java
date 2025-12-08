@@ -5,6 +5,7 @@ import com.stocat.tradeapi.infrastructure.dto.AssetDto;
 import lombok.Builder;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Builder
 public record BuyOrderCommand(
@@ -12,6 +13,7 @@ public record BuyOrderCommand(
         OrderType orderType,
         AssetDto asset,
         BigDecimal quantity,
-        BigDecimal price
+        BigDecimal price,
+        LocalDateTime requestTime
 ) {
 }

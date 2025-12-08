@@ -1,9 +1,9 @@
 package com.stocat.tradeapi.infrastructure;
 
-import com.stocat.common.response.ApiResponse;
-import com.stocat.tradeapi.infrastructure.dto.BuyMatchRequest;
+import com.stocat.tradeapi.infrastructure.dto.MatchBuyRequest;
+import com.stocat.tradeapi.infrastructure.dto.MatchBuyResult;
 
 public interface MatchApiClient {
-    ApiResponse<?> buy(BuyMatchRequest request);
-    ApiResponse<?> cancelOrder(Long orderId);
+    MatchBuyResult buy(MatchBuyRequest request);
+    void cancelOrder(Long orderId);
 }
