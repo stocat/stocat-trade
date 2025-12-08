@@ -2,18 +2,17 @@ package com.stocat.tradeapi.service;
 
 import com.stocat.common.domain.AssetsCategory;
 import com.stocat.common.domain.Currency;
-import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
-import com.stocat.common.domain.order.OrderType;
 import com.stocat.common.exception.ApiException;
+import com.stocat.tradeapi.OrderFixtureUtils;
 import com.stocat.tradeapi.event.BuyOrderCreatedEvent;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.infrastructure.MatchApiClient;
 import com.stocat.tradeapi.infrastructure.dto.AssetDto;
 import com.stocat.tradeapi.service.dto.OrderDto;
 import com.stocat.tradeapi.service.dto.command.BuyOrderCommand;
-import lombok.extern.slf4j.Slf4j;
+import com.stocat.tradeapi.service.dto.command.OrderCancelCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,17 +20,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-
+import static com.stocat.tradeapi.OrderFixtureUtils.createBuyOrder;
+import static com.stocat.tradeapi.OrderFixtureUtils.createBuyOrderCommand;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@Slf4j
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceTest {
     @Mock
@@ -107,48 +103,41 @@ public class OrderServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.EXECUTED_TODAY_ORDER_EXISTS_IN_CATEGORY);
     }
 
-    private BuyOrderCommand createBuyOrderCommand() {
-        return createBuyOrderCommand(createAssetDto());
+    @Test
+    void 주문취소시_주문업데이트는_OrderCommandService에_위임한다() {
+        OrderCancelCommand command = new OrderCancelCommand(1000L, 1L);
+        Order order = createBuyOrder(OrderStatus.PENDING);
+        given(orderQueryService.findById(command.orderId())).willReturn(order);
+        given(orderCommandService.updateOrderStatus(order, OrderStatus.CANCELED))
+                .willReturn(OrderFixtureUtils.createBuyOrder(OrderStatus.CANCELED));
+
+        orderService.cancelOrder(command);
+
+        verify(orderCommandService, times(1))
+                .updateOrderStatus(order, OrderStatus.CANCELED);
     }
 
-    private BuyOrderCommand createBuyOrderCommand(AssetDto asset) {
-        return BuyOrderCommand.builder()
-                .memberId(1L)
-                .orderType(OrderType.LIMIT)
-                .asset(asset)
-                .price(BigDecimal.valueOf(200))
-                .quantity(BigDecimal.valueOf(100))
-                .requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
-                .build();
+    @Test
+    void 주문취소시_체결엔진을_통해_검증_한다() {
+        OrderCancelCommand command = new OrderCancelCommand(1000L, 1L);
+        Order order = createBuyOrder(OrderStatus.PENDING);
+        given(orderQueryService.findById(command.orderId())).willReturn(order);
+        given(orderCommandService.updateOrderStatus(order, OrderStatus.CANCELED))
+                .willReturn(OrderFixtureUtils.createBuyOrder(OrderStatus.CANCELED));
+
+        orderService.cancelOrder(command);
+
+        verify(matchApiClient, times(1))
+                .cancelOrder(command.orderId());
     }
 
-    private AssetDto createAssetDto() {
-        return AssetDto.builder()
-                .id(1)
-                .symbol("NVDA")
-                .category(AssetsCategory.USD)
-                .currency(Currency.USD)
-                .isActive(true)
-                .isDaily(true)
-                .koName("엔비디아")
-                .usName("NVIDIA")
-                .build();
-    }
+    @Test
+    void 주문취소시_주문소유자와_요청자가_다르면_예외가_발생한다() {
+        OrderCancelCommand command = new OrderCancelCommand(1000L, 2L);
+        given(orderQueryService.findById(command.orderId())).willReturn(OrderFixtureUtils.createBuyOrder(OrderStatus.PENDING));
 
-    private Order createBuyOrder(BuyOrderCommand command) {
-        return Order.builder()
-                .id(1L)
-                .memberId(command.memberId())
-                .assetId(command.asset().id())
-                .category(command.asset().category())
-                .currency(command.asset().currency())
-                .side(TradeSide.BUY)
-                .type(command.orderType())
-                .status(OrderStatus.CREATED)
-                .quantity(command.quantity())
-                .price(command.price())
-                .price(command.price())
-                .quantity(command.quantity())
-                .build();
+        assertThatThrownBy(() -> orderService.cancelOrder(command))
+                .isInstanceOf(ApiException.class)
+                .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.ORDER_PERMISSION_DENIED);
     }
 }
