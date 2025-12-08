@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -44,5 +45,13 @@ public class OrderQueryService {
         LocalDateTime todayEnd = now.toLocalDate().atTime(LocalTime.MAX);
         return orderRepository.existsByMemberIdAndSideAndCategoryAndCreatedAtBetween
                 (memberId, TradeSide.BUY, category, todayStart, todayEnd);
+    }
+
+    /**
+     * 특정 시간 이전에 생성된 주문들을 조회
+     * 스케줄러에서 재시도 대상 주문을 찾을 때 사용
+     */
+    public List<Order> findCreatedOrdersOlderThan(@NonNull LocalDateTime before) {
+        return orderRepository.findByStatusAndCreatedAtBefore(OrderStatus.CREATED, before);
     }
 }

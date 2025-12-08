@@ -12,6 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +21,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -64,6 +64,9 @@ public class Order extends BaseEntity {
 
     @Column(nullable = true)
     private BigDecimal price;
+
+    @Version
+    private Integer version;
 
     public void updateStatus(OrderStatus status) {
         if (!this.status.canTransitionTo(status)) {

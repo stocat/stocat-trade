@@ -2,10 +2,14 @@ package com.stocat.tradeapi;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
+@EnableScheduling
 @SpringBootApplication(
         scanBasePackages = {
-                "com.stocat.common"
+                "com.stocat.common",
+                "com.stocat.tradeapi"
         }
 )
 public class TradeApiApplication {

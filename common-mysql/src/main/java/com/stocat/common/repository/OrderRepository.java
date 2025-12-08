@@ -5,13 +5,9 @@ import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
     boolean existsByMemberIdAndSideAndCategoryAndStatus(
@@ -19,4 +15,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     boolean existsByMemberIdAndSideAndCategoryAndCreatedAtBetween(
             Long memberId, TradeSide side, AssetsCategory category, LocalDateTime start, LocalDateTime end);
+
+    List<Order> findByStatusAndCreatedAtBefore(OrderStatus status, LocalDateTime before);
 }

@@ -32,8 +32,7 @@ public class OrderService {
 
     @Transactional
     public OrderDto placeBuyOrder(BuyOrderCommand command) {
-        LocalDateTime requestTime = LocalDateTime.now();
-        validateBuyOrder(command, requestTime);
+        validateBuyOrder(command);
 
         Order order = orderCommandService.createBuyOrder(command);
 
@@ -46,7 +45,7 @@ public class OrderService {
     }
 
 
-    public void validateBuyOrder(BuyOrderCommand command, LocalDateTime requestTime) {
+    public void validateBuyOrder(BuyOrderCommand command) {
         AssetDto asset = command.asset();
 
         if (!asset.isDaily()) {
@@ -63,7 +62,6 @@ public class OrderService {
         }
     }
 
-    @Transactional
     public OrderDto cancelOrder(OrderCancelCommand command) {
         Order order = orderQueryService.findById(command.orderId());
 
