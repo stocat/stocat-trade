@@ -1,11 +1,11 @@
-package com.stocat.tradeapi.service;
+package com.stocat.tradeapi.position.service;
 
 import com.stocat.common.domain.position.PositionEntity;
 import com.stocat.common.exception.ApiException;
-import com.stocat.tradeapi.exception.PositionErrorCode;
-import com.stocat.tradeapi.service.dto.PositionDto;
-import com.stocat.tradeapi.service.dto.command.GetPositionCommand;
-import com.stocat.tradeapi.service.dto.command.GetUserPositionCommand;
+import com.stocat.tradeapi.position.exception.PositionErrorCode;
+import com.stocat.tradeapi.position.service.dto.PositionDto;
+import com.stocat.tradeapi.position.service.dto.command.GetPositionCommand;
+import com.stocat.tradeapi.position.service.dto.command.GetUserPositionCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

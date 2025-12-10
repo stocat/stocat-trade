@@ -1,4 +1,4 @@
-package com.stocat.tradeapi.service.dto.command;
+package com.stocat.tradeapi.position.service.dto.command;
 
 public record GetUserPositionCommand(
         Long userId

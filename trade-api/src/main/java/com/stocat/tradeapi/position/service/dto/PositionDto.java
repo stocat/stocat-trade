@@ -1,14 +1,15 @@
-package com.stocat.tradeapi.service.dto;
+package com.stocat.tradeapi.position.service.dto;
 
 import com.stocat.common.domain.position.PositionDirection;
 import com.stocat.common.domain.position.PositionEntity;
 import com.stocat.common.domain.position.PositionStatus;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Builder

@@ -1,4 +1,4 @@
-package com.stocat.tradeapi.exception;
+package com.stocat.tradeapi.position.exception;
 
 import com.stocat.common.exception.ErrorCode;
 import com.stocat.common.exception.ErrorDomain;

@@ -1,5 +1,0 @@
-spring:
-  application:
-    name: position-api
-  profiles:
-    active: local

@@ -1,7 +1,6 @@
 rootProject.name = 'stocat-trade'
 
 include 'trade-api'
-include 'position-api'
 
 include 'common-redis'
 include 'common-mysql'

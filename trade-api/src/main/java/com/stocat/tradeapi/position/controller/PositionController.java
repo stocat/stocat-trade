@@ -1,11 +1,11 @@
-package com.stocat.tradeapi.controller;
+package com.stocat.tradeapi.position.controller;
 
 import com.stocat.common.response.ApiResponse;
-import com.stocat.tradeapi.controller.dto.PositionResponse;
-import com.stocat.tradeapi.service.PositionService;
-import com.stocat.tradeapi.service.dto.PositionDto;
-import com.stocat.tradeapi.service.dto.command.GetPositionCommand;
-import com.stocat.tradeapi.service.dto.command.GetUserPositionCommand;
+import com.stocat.tradeapi.position.controller.dto.PositionResponse;
+import com.stocat.tradeapi.position.service.PositionService;
+import com.stocat.tradeapi.position.service.dto.PositionDto;
+import com.stocat.tradeapi.position.service.dto.command.GetPositionCommand;
+import com.stocat.tradeapi.position.service.dto.command.GetUserPositionCommand;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;

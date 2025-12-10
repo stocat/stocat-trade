@@ -1,8 +1,8 @@
-package com.stocat.tradeapi.controller.dto;
+package com.stocat.tradeapi.position.controller.dto;
 
 import com.stocat.common.domain.position.PositionDirection;
 import com.stocat.common.domain.position.PositionStatus;
-import com.stocat.tradeapi.service.dto.PositionDto;
+import com.stocat.tradeapi.position.service.dto.PositionDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
