@@ -5,7 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication(
         scanBasePackages = {
-                "com.stocat.common"
+                "com.stocat.common",
+                "com.stocat.tradeapi"
         }
 )
 public class PositionApiApplication {
