@@ -1,6 +1,8 @@
 package com.stocat.tradeapi.service;
 
 import com.stocat.common.domain.position.PositionEntity;
+import com.stocat.common.exception.ApiException;
+import com.stocat.tradeapi.exception.PositionErrorCode;
 import com.stocat.tradeapi.service.dto.PositionDto;
 import com.stocat.tradeapi.service.dto.command.GetPositionCommand;
 import com.stocat.tradeapi.service.dto.command.GetUserPositionCommand;
@@ -21,7 +23,7 @@ public class PositionService {
                 command.userId());
 
         PositionEntity entity = userPosition.orElseThrow(() ->
-                // TODO: 에러 처리
+                new ApiException(PositionErrorCode.NOT_FOUND_USER_POSITION)
         );
 
         return PositionDto.from(entity);
