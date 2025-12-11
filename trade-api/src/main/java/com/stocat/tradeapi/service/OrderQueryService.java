@@ -10,12 +10,12 @@ import com.stocat.tradeapi.exception.TradeErrorCode;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -25,6 +25,12 @@ public class OrderQueryService {
 
     public Order findById(@NonNull Long orderId) {
         return orderRepository.findById(orderId)
+                .orElseThrow(() -> new ApiException(TradeErrorCode.ORDER_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+    public Order findByIdForUpdate(@NonNull Long orderId) {
+        return orderRepository.findByIdForUpdate(orderId)
                 .orElseThrow(() -> new ApiException(TradeErrorCode.ORDER_NOT_FOUND));
     }
 

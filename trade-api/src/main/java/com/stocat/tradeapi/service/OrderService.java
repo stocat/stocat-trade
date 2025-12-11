@@ -62,8 +62,9 @@ public class OrderService {
         }
     }
 
+    @Transactional
     public OrderDto cancelOrder(OrderCancelCommand command) {
-        Order order = orderQueryService.findById(command.orderId());
+        Order order = orderQueryService.findByIdForUpdate(command.orderId());
 
         if (!order.getMemberId().equals(command.memberId())) {
             throw new ApiException(TradeErrorCode.ORDER_PERMISSION_DENIED);

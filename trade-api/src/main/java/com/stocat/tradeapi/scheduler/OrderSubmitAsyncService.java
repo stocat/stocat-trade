@@ -7,6 +7,7 @@ import com.stocat.tradeapi.infrastructure.MatchApiClient;
 import com.stocat.tradeapi.infrastructure.dto.MatchBuyRequest;
 import com.stocat.tradeapi.infrastructure.dto.MatchBuyResult;
 import com.stocat.tradeapi.service.OrderCommandService;
+import com.stocat.tradeapi.service.OrderQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -21,32 +22,32 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class OrderSubmitAsyncService {
     private final MatchApiClient matchApiClient;
+    private final OrderQueryService orderQueryService;
     private final OrderCommandService orderCommandService;
 
-    @Async("orderTaskExecutor")
+    @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void submitOrderAsync(Order order) {
-        try {
-            MatchBuyRequest request = MatchBuyRequest.builder()
-                    .memberId(order.getMemberId())
-                    .quantity(order.getQuantity())
-                    .price(order.getPrice())
-                    .build();
+        order = orderQueryService.findByIdForUpdate(order.getId());
 
-            MatchBuyResult result = matchApiClient.buy(request);
+        if (order.getStatus() != OrderStatus.CREATED) {
+            log.warn("매수 주문의 상태가 CREATED가 아닙니다. orderId: {}, status: {}", order.getId(), order.getStatus());
+            return;
+        }
 
-            if (result.isSuccess()) {
-                orderCommandService.updateOrderStatus(order, OrderStatus.PENDING);
-            }
-            if (result.isRejected()) {
-                orderCommandService.updateOrderStatus(order, OrderStatus.REJECTED);
-            }
-        } catch (ObjectOptimisticLockingFailureException e) {
-            log.info("주문 {}은 이미 다른 프로세스에서 업데이트되었습니다 (낙관락)", order.getId());
-        } catch (IllegalStateException e) {
-            log.warn("주문 {}의 상태를 변경할 수 없습니다: {}", order.getId(), e.getMessage());
-        } catch (ApiException e) {
-            log.error("주문 {}을 거래소에 전송하는 중 오류가 발생했습니다", order.getId(), e);
+        MatchBuyRequest request = MatchBuyRequest.builder()
+                .memberId(order.getMemberId())
+                .quantity(order.getQuantity())
+                .price(order.getPrice())
+                .build();
+
+        MatchBuyResult result = matchApiClient.buy(request);
+
+        if (result.isSuccess()) {
+            orderCommandService.updateOrderStatus(order, OrderStatus.PENDING);
+        }
+        if (result.isRejected()) {
+            orderCommandService.updateOrderStatus(order, OrderStatus.REJECTED);
         }
     }
 }
