@@ -1,11 +1,15 @@
 package com.stocat.tradeapi.order.controller.dto;
 
+import com.stocat.common.domain.order.OrderType;
+import com.stocat.tradeapi.infrastructure.dto.AssetDto;
+import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 public record BuyOrderRequest(
         @Schema(description = "주문 타입 (LIMIT/MARKET)", example = "LIMIT")
@@ -34,5 +38,18 @@ public record BuyOrderRequest(
         }
 
         return false;
+    }
+
+    public BuyOrderCommand toCommand(Long memberId, LocalDateTime now) {
+        OrderType orderType = OrderType.valueOf(this.orderType);
+
+        return BuyOrderCommand.builder()
+                .memberId(memberId)
+                .orderType(orderType)
+                .asset(AssetDto.builder().symbol(symbol).build())
+                .quantity(quantity)
+                .price(price)
+                .requestTime(now)
+                .build();
     }
 }

@@ -38,17 +38,7 @@ public class OrderController {
             @Valid @RequestBody BuyOrderRequest request
     ) {
         LocalDateTime now = LocalDateTime.now();
-        
-        OrderType orderType = OrderType.valueOf(request.orderType());
-
-        BuyOrderCommand command = BuyOrderCommand.builder()
-                .memberId(memberId)
-                .orderType(orderType)
-                .asset(AssetDto.builder().symbol(request.symbol()).build())
-                .quantity(request.quantity())
-                .price(request.price())
-                .requestTime(now)
-                .build();
+        BuyOrderCommand command = request.toCommand(memberId, now);
 
         OrderResponse response = OrderResponse.from(orderService.placeBuyOrder(command));
 
