@@ -1,7 +1,7 @@
-package com.stocat.tradeapi.scheduler;
+package com.stocat.tradeapi.order.scheduler;
 
 import com.stocat.common.domain.order.Order;
-import com.stocat.tradeapi.service.OrderQueryService;
+import com.stocat.tradeapi.order.service.OrderQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

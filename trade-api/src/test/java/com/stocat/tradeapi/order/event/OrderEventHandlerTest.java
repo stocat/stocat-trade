@@ -1,19 +1,19 @@
-package com.stocat.tradeapi.event;
+package com.stocat.tradeapi.order.event;
 
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.tradeapi.infrastructure.MatchApiClient;
 import com.stocat.tradeapi.infrastructure.dto.MatchBuyRequest;
 import com.stocat.tradeapi.infrastructure.dto.MatchBuyResult;
-import com.stocat.tradeapi.service.OrderCommandService;
-import com.stocat.tradeapi.service.OrderQueryService;
+import com.stocat.tradeapi.order.service.OrderCommandService;
+import com.stocat.tradeapi.order.service.OrderQueryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.stocat.tradeapi.OrderFixtureUtils.createBuyOrder;
+import static com.stocat.tradeapi.order.OrderFixtureUtils.createBuyOrder;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;

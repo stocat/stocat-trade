@@ -1,4 +1,4 @@
-package com.stocat.tradeapi.service.dto.command;
+package com.stocat.tradeapi.order.service.dto.command;
 
 import com.stocat.common.domain.order.OrderType;
 import com.stocat.tradeapi.infrastructure.dto.AssetDto;

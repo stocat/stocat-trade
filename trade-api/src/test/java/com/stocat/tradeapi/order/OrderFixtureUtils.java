@@ -1,4 +1,4 @@
-package com.stocat.tradeapi;
+package com.stocat.tradeapi.order;
 
 import com.stocat.common.domain.AssetsCategory;
 import com.stocat.common.domain.Currency;
@@ -7,7 +7,7 @@ import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.domain.order.OrderType;
 import com.stocat.tradeapi.infrastructure.dto.AssetDto;
-import com.stocat.tradeapi.service.dto.command.BuyOrderCommand;
+import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

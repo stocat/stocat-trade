@@ -1,4 +1,4 @@
-package com.stocat.tradeapi.controller.dto;
+package com.stocat.tradeapi.order.controller.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;

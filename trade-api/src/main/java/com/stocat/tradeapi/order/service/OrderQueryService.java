@@ -1,4 +1,4 @@
-package com.stocat.tradeapi.service;
+package com.stocat.tradeapi.order.service;
 
 import com.stocat.common.domain.AssetsCategory;
 import com.stocat.common.domain.TradeSide;

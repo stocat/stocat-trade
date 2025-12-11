@@ -1,4 +1,4 @@
-package com.stocat.tradeapi.service.dto.command;
+package com.stocat.tradeapi.order.service.dto.command;
 
 public record OrderCancelCommand(
         Long orderId,

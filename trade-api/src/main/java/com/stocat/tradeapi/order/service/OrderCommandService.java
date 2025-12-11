@@ -1,12 +1,10 @@
-package com.stocat.tradeapi.service;
+package com.stocat.tradeapi.order.service;
 
 import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
-import com.stocat.common.exception.ApiException;
 import com.stocat.common.repository.OrderRepository;
-import com.stocat.tradeapi.exception.TradeErrorCode;
-import com.stocat.tradeapi.service.dto.command.BuyOrderCommand;
+import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

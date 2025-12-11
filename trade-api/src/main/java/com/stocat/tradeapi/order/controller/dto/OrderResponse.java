@@ -1,9 +1,9 @@
-package com.stocat.tradeapi.controller.dto;
+package com.stocat.tradeapi.order.controller.dto;
 
 import com.stocat.common.domain.Currency;
 import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.OrderStatus;
-import com.stocat.tradeapi.service.dto.OrderDto;
+import com.stocat.tradeapi.order.service.dto.OrderDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
