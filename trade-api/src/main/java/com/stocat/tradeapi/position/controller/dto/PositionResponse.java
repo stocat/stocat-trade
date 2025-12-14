@@ -1,6 +1,5 @@
 package com.stocat.tradeapi.position.controller.dto;
 
-import com.stocat.common.domain.position.PositionDirection;
 import com.stocat.common.domain.position.PositionStatus;
 import com.stocat.tradeapi.position.service.dto.PositionDto;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -28,9 +27,6 @@ public class PositionResponse {
     @Schema(description = "자산 ID", example = "3")
     private Long assetId;
 
-    @Schema(description = "포지션 방향", example = "LONG", allowableValues = {"LONG", "SHORT"})
-    private PositionDirection direction;
-
     @Schema(description = "포지션 상태", example = "OPEN", allowableValues = {"OPEN", "CLOSED", "EXPIRED"})
     private PositionStatus status;
 
@@ -54,7 +50,6 @@ public class PositionResponse {
                 .id(dto.getId())
                 .userId(dto.getUserId())
                 .assetId(dto.getAssetId())
-                .direction(dto.getDirection())
                 .status(dto.getStatus())
                 .quantity(dto.getQuantity())
                 .avgEntryPrice(dto.getAvgEntryPrice())

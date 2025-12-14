@@ -28,9 +28,6 @@ public class PositionEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private PositionStatus status;
 
-    @Enumerated(EnumType.STRING)
-    private PositionDirection direction;
-
     private BigDecimal quantity;
 
     @Column(name = "avg_entry_price")
@@ -48,7 +45,6 @@ public class PositionEntity extends BaseEntity {
     public static PositionEntity create(Long userId,
                                         Long assetId,
                                         PositionStatus status,
-                                        PositionDirection direction,
                                         BigDecimal quantity,
                                         BigDecimal avgEntryPrice,
                                         LocalDateTime openedAt) {
@@ -57,7 +53,6 @@ public class PositionEntity extends BaseEntity {
                 .userId(userId)
                 .assetId(assetId)
                 .status(status)
-                .direction(direction)
                 .quantity(quantity)
                 .avgEntryPrice(avgEntryPrice)
                 .openedAt(openedAt)
