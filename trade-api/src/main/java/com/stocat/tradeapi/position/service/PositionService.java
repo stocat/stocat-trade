@@ -3,6 +3,7 @@ package com.stocat.tradeapi.position.service;
 import com.stocat.common.domain.position.PositionEntity;
 import com.stocat.tradeapi.position.service.dto.PositionDto;
 import com.stocat.tradeapi.position.service.dto.command.GetPositionCommand;
+import com.stocat.tradeapi.position.service.dto.command.NewPositionCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,5 +32,9 @@ public class PositionService {
         return userPositions.stream()
                 .map(PositionDto::from)
                 .toList();
+    }
+
+    public void createNewUserPosition(NewPositionCommand command) {
+        // TODO: 구현
     }
 }
