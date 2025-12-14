@@ -5,7 +5,6 @@ import com.stocat.tradeapi.position.controller.dto.PositionResponse;
 import com.stocat.tradeapi.position.service.PositionService;
 import com.stocat.tradeapi.position.service.dto.PositionDto;
 import com.stocat.tradeapi.position.service.dto.command.GetPositionCommand;
-import com.stocat.tradeapi.position.service.dto.command.GetUserPositionCommand;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
@@ -31,7 +30,7 @@ public class PositionController {
     @GetMapping("/{positionId}")
     public ResponseEntity<ApiResponse<PositionResponse>> getPosition(
             @Positive @PathVariable Long positionId,
-            @Positive @RequestParam Long userId) {
+            @Positive @RequestHeader("X-USER-ID") Long userId) {
         GetPositionCommand command = GetPositionCommand.from(positionId, userId);
         PositionDto position = positionService.getPositionById(command);
 
@@ -43,9 +42,8 @@ public class PositionController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "포지션 조회 성공")
     @GetMapping()
     public ResponseEntity<ApiResponse<List<PositionResponse>>> getUserPositions(
-            @Positive @RequestParam Long userId) {
-        GetUserPositionCommand command = GetUserPositionCommand.from(userId);
-        List<PositionDto> userPositions = positionService.getUserPositions(command);
+            @Positive @RequestHeader("X-USER-ID") Long userId) {
+        List<PositionDto> userPositions = positionService.getUserPositions(userId);
 
         List<PositionResponse> response = userPositions.stream()
                 .map(PositionResponse::from)

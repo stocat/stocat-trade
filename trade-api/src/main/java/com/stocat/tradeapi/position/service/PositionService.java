@@ -5,7 +5,6 @@ import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.position.exception.PositionErrorCode;
 import com.stocat.tradeapi.position.service.dto.PositionDto;
 import com.stocat.tradeapi.position.service.dto.command.GetPositionCommand;
-import com.stocat.tradeapi.position.service.dto.command.GetUserPositionCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +24,8 @@ public class PositionService {
         return PositionDto.from(userPosition);
     }
 
-    public List<PositionDto> getUserPositions(GetUserPositionCommand command) {
-        List<PositionEntity> userPositions = positionQueryService.getUserPositions(command.userId());
+    public List<PositionDto> getUserPositions(Long userId) {
+        List<PositionEntity> userPositions = positionQueryService.getUserPositions(userId);
 
         if (userPositions == null || userPositions.isEmpty()) {
             return List.of();
