@@ -51,9 +51,7 @@ public class PositionEntity extends BaseEntity {
                                         PositionDirection direction,
                                         BigDecimal quantity,
                                         BigDecimal avgEntryPrice,
-                                        LocalDateTime expiresAt,
-                                        LocalDateTime openedAt,
-                                        LocalDateTime closedAt) {
+                                        LocalDateTime openedAt) {
 
         return PositionEntity.builder()
                 .userId(userId)
@@ -62,7 +60,7 @@ public class PositionEntity extends BaseEntity {
                 .direction(direction)
                 .quantity(quantity)
                 .avgEntryPrice(avgEntryPrice)
-                .openedAt(LocalDateTime.now())
+                .openedAt(openedAt)
                 .build();
     }
 }
