@@ -19,14 +19,10 @@ public class PositionService {
     private final PositionQueryService positionQueryService;
 
     public PositionDto getPositionById(GetPositionCommand command) {
-        Optional<PositionEntity> userPosition = positionQueryService.getUserPosition(command.positionId(),
-                command.userId());
+        PositionEntity userPosition =
+                positionQueryService.getUserPosition(command.positionId(), command.userId());
 
-        PositionEntity entity = userPosition.orElseThrow(() ->
-                new ApiException(PositionErrorCode.NOT_FOUND_USER_POSITION)
-        );
-
-        return PositionDto.from(entity);
+        return PositionDto.from(userPosition);
     }
 
     public List<PositionDto> getUserPositions(GetUserPositionCommand command) {
