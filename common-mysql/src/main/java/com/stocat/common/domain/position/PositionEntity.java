@@ -49,15 +49,15 @@ public class PositionEntity extends BaseEntity {
     @Column(name = "closed_at")
     private LocalDateTime closedAt;
 
-    public static PositionEntity from(Long userId,
-                                      Long assetId,
-                                      PositionStatus status,
-                                      PositionDirection direction,
-                                      BigDecimal quantity,
-                                      BigDecimal avgEntryPrice,
-                                      LocalDateTime expiresAt,
-                                      LocalDateTime openedAt,
-                                      LocalDateTime closedAt) {
+    public static PositionEntity create(Long userId,
+                                        Long assetId,
+                                        PositionStatus status,
+                                        PositionDirection direction,
+                                        BigDecimal quantity,
+                                        BigDecimal avgEntryPrice,
+                                        LocalDateTime expiresAt,
+                                        LocalDateTime openedAt,
+                                        LocalDateTime closedAt) {
 
         return PositionEntity.builder()
                 .userId(userId)
