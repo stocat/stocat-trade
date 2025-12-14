@@ -27,7 +27,7 @@ public class PositionService {
     public List<PositionDto> getUserPositions(Long userId) {
         List<PositionEntity> userPositions = positionQueryService.getUserPositions(userId);
 
-        if (userPositions == null || userPositions.isEmpty()) {
+        if (userPositions == null) {
             return List.of();
         }
 
