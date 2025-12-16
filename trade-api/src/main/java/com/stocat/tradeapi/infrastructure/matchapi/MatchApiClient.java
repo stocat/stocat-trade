@@ -1,9 +1,9 @@
 package com.stocat.tradeapi.infrastructure.matchapi;
 
+import com.stocat.tradeapi.infrastructure.matchapi.dto.BuyOrderSubmissionRequest;
 import com.stocat.tradeapi.infrastructure.matchapi.dto.BuyOrderSubmissionResponse;
-import com.stocat.tradeapi.order.service.dto.OrderDto;
 
 public interface MatchApiClient {
-    BuyOrderSubmissionResponse submitBuyOrder(OrderDto order);
+    BuyOrderSubmissionResponse submitBuyOrder(BuyOrderSubmissionRequest request);
     void cancelOrder(Long orderId);
 }

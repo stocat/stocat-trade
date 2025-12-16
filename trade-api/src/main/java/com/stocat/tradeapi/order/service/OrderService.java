@@ -6,6 +6,7 @@ import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.infrastructure.matchapi.MatchApiClient;
+import com.stocat.tradeapi.infrastructure.matchapi.dto.BuyOrderSubmissionRequest;
 import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
@@ -34,7 +35,7 @@ public class OrderService {
         Order order = orderCommandService.createBuyOrder(command);
         OrderDto dto = OrderDto.from(order);
 
-        matchApiClient.submitBuyOrder(dto);
+        matchApiClient.submitBuyOrder(BuyOrderSubmissionRequest.from(order));
 
         // TODO: 사용 가능 포인트(현금) 감소 로직 추가
 

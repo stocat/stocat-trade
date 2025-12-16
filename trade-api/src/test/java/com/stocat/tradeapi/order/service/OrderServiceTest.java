@@ -8,6 +8,7 @@ import com.stocat.common.domain.order.OrderType;
 import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.infrastructure.matchapi.MatchApiClient;
+import com.stocat.tradeapi.infrastructure.matchapi.dto.BuyOrderSubmissionRequest;
 import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.OrderFixtureUtils;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
@@ -58,6 +59,18 @@ public class OrderServiceTest {
         verify(orderCommandService, times(1)).createBuyOrder(command);
         assertThat(orderDto.id()).isEqualTo(order.getId());
     }
+
+    @Test
+    void 매수주문시_주문을_체결엔진에_제출한다() {
+        BuyOrderCommand command = createBuyOrderCommand();
+        Order order = createBuyOrder(command);
+        given(orderCommandService.createBuyOrder(command)).willReturn(order);
+
+        orderService.placeBuyOrder(command);
+
+        verify(matchApiClient, times(1)).submitBuyOrder(BuyOrderSubmissionRequest.from(order));
+    }
+
 
 
     @Test

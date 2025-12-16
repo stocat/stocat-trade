@@ -1,14 +1,14 @@
 package com.stocat.tradeapi.infrastructure.matchapi;
 
+import com.stocat.tradeapi.infrastructure.matchapi.dto.BuyOrderSubmissionRequest;
 import com.stocat.tradeapi.infrastructure.matchapi.dto.BuyOrderSubmissionResponse;
-import com.stocat.tradeapi.order.service.dto.OrderDto;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TempMatchApiClient implements MatchApiClient {
     @Override
-    public BuyOrderSubmissionResponse submitBuyOrder(OrderDto order) {
+    public BuyOrderSubmissionResponse submitBuyOrder(BuyOrderSubmissionRequest request) {
         throw new NotImplementedException();
     }
 
