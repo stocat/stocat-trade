@@ -5,6 +5,7 @@ import com.stocat.common.domain.Currency;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.OrderStatus;
+import com.stocat.common.domain.order.OrderTif;
 import com.stocat.common.domain.order.OrderType;
 import lombok.Builder;
 
@@ -23,6 +24,7 @@ public record OrderDto(
         OrderStatus status,
         BigDecimal quantity,
         BigDecimal price,
+        OrderTif tif,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         LocalDateTime deletedAt
@@ -39,6 +41,7 @@ public record OrderDto(
                 order.getStatus(),
                 order.getQuantity(),
                 order.getPrice(),
+                order.getTif(),
                 order.getCreatedAt(),
                 order.getUpdatedAt(),
                 order.getDeletedAt()

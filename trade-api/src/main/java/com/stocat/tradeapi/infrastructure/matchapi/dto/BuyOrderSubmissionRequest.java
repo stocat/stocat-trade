@@ -1,5 +1,6 @@
 package com.stocat.tradeapi.infrastructure.matchapi.dto;
 
+import com.stocat.common.domain.order.OrderTif;
 import com.stocat.common.domain.order.OrderType;
 import lombok.Builder;
 
@@ -12,6 +13,7 @@ public record BuyOrderSubmissionRequest(
         OrderType orderType,
         Integer assetId,
         BigDecimal quantity,
-        BigDecimal price
+        BigDecimal price,
+        OrderTif tif
 ) {
 }
