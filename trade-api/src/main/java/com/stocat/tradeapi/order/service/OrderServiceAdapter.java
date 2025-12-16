@@ -1,7 +1,7 @@
 package com.stocat.tradeapi.order.service;
 
-import com.stocat.tradeapi.infrastructure.QuoteApiClient;
-import com.stocat.tradeapi.infrastructure.dto.AssetDto;
+import com.stocat.tradeapi.infrastructure.quoteapi.QuoteApiClient;
+import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
 import com.stocat.tradeapi.order.service.dto.command.OrderCancelCommand;

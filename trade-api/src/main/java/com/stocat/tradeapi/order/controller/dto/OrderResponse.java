@@ -28,15 +28,12 @@ public record OrderResponse(
         LocalDateTime createdAt
 ) {
     public static OrderResponse from(OrderDto order) {
-        String status = order.status() == OrderStatus.CREATED
-                ? OrderStatus.PENDING.name() : order.status().name();
-
         return new OrderResponse(
                 order.id(),
                 order.assetId(),
                 order.side(),
                 order.currency(),
-                status,
+                order.status().name(),
                 order.quantity(),
                 order.price(),
                 order.createdAt()

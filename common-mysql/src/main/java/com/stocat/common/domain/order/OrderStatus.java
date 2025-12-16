@@ -1,18 +1,23 @@
 package com.stocat.common.domain.order;
 
+import lombok.Getter;
+
+@Getter
 public enum OrderStatus {
-    CREATED,
-    PENDING,
-    FILLED,
-    CANCELED,
-    REJECTED
-    ;
+    PENDING("체결대기"),
+    FILLED("체결"),
+    CANCELED("주문취소");
+
+    private final String description;
+
+    OrderStatus(String description) {
+        this.description = description;
+    }
 
     public boolean canTransitionTo(OrderStatus next) {
-        return switch (this) {
-            case CREATED -> next == PENDING || next == CANCELED;
-            case PENDING -> next == FILLED || next == CANCELED || next == REJECTED;
-            default -> false;
-        };
+        if (this == PENDING) {
+            return next == FILLED || next == CANCELED;
+        }
+        return false;
     }
 }

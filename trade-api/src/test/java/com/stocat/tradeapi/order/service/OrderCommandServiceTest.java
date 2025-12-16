@@ -41,7 +41,7 @@ public class OrderCommandServiceTest {
 
         assertThat(saved).satisfies(o -> {
             assertThat(o.getSide()).isEqualTo(TradeSide.BUY);
-            assertThat(o.getStatus()).isEqualTo(OrderStatus.CREATED);
+            assertThat(o.getStatus()).isEqualTo(OrderStatus.PENDING);
         });
     }
 

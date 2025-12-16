@@ -1,10 +1,8 @@
 package com.stocat.tradeapi.order.controller;
 
-import com.stocat.common.domain.order.OrderType;
 import com.stocat.common.response.ApiResponse;
 import com.stocat.tradeapi.order.controller.dto.BuyOrderRequest;
 import com.stocat.tradeapi.order.controller.dto.OrderResponse;
-import com.stocat.tradeapi.infrastructure.dto.AssetDto;
 import com.stocat.tradeapi.order.service.OrderService;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;

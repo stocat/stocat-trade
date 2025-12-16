@@ -1,4 +1,4 @@
-package com.stocat.tradeapi.infrastructure.dto;
+package com.stocat.tradeapi.infrastructure.matchapi.dto;
 
 import com.stocat.common.domain.order.OrderType;
 import lombok.Builder;
@@ -6,7 +6,8 @@ import lombok.Builder;
 import java.math.BigDecimal;
 
 @Builder
-public record MatchBuyRequest(
+public record BuyOrderSubmissionRequest(
+        Long orderId,
         Long memberId,
         OrderType orderType,
         Integer assetId,

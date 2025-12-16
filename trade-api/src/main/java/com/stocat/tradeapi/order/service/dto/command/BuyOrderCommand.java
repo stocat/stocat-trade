@@ -1,7 +1,7 @@
 package com.stocat.tradeapi.order.service.dto.command;
 
 import com.stocat.common.domain.order.OrderType;
-import com.stocat.tradeapi.infrastructure.dto.AssetDto;
+import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import lombok.Builder;
 
 import java.math.BigDecimal;

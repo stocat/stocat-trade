@@ -6,7 +6,7 @@ import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.domain.order.OrderType;
-import com.stocat.tradeapi.infrastructure.dto.AssetDto;
+import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
 
 import java.math.BigDecimal;
@@ -45,7 +45,6 @@ public final class OrderFixtureUtils {
                 .build();
     }
 
-
     public static Order createBuyOrder(OrderStatus status) {
         return Order.builder()
                 .id(ORDER_ID)
@@ -70,7 +69,7 @@ public final class OrderFixtureUtils {
                 .currency(command.asset().currency())
                 .side(TradeSide.BUY)
                 .type(command.orderType())
-                .status(OrderStatus.CREATED)
+                .status(OrderStatus.PENDING)
                 .quantity(command.quantity())
                 .price(command.price())
                 .build();

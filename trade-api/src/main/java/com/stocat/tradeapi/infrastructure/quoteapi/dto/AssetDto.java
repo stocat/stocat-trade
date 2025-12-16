@@ -1,4 +1,4 @@
-package com.stocat.tradeapi.infrastructure.dto;
+package com.stocat.tradeapi.infrastructure.quoteapi.dto;
 
 import com.stocat.common.domain.AssetsCategory;
 import com.stocat.common.domain.Currency;

@@ -4,12 +4,12 @@ import com.stocat.common.domain.AssetsCategory;
 import com.stocat.common.domain.Currency;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
+import com.stocat.common.domain.order.OrderType;
 import com.stocat.common.exception.ApiException;
-import com.stocat.tradeapi.order.OrderFixtureUtils;
-import com.stocat.tradeapi.order.event.BuyOrderCreatedEvent;
 import com.stocat.tradeapi.exception.TradeErrorCode;
-import com.stocat.tradeapi.infrastructure.MatchApiClient;
-import com.stocat.tradeapi.infrastructure.dto.AssetDto;
+import com.stocat.tradeapi.infrastructure.matchapi.MatchApiClient;
+import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
+import com.stocat.tradeapi.order.OrderFixtureUtils;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
 import com.stocat.tradeapi.order.service.dto.command.OrderCancelCommand;
@@ -18,8 +18,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import static com.stocat.tradeapi.order.OrderFixtureUtils.createAssetDto;
 import static com.stocat.tradeapi.order.OrderFixtureUtils.createBuyOrder;
 import static com.stocat.tradeapi.order.OrderFixtureUtils.createBuyOrderCommand;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,14 +39,12 @@ public class OrderServiceTest {
     private OrderCommandService orderCommandService;
     @Mock
     private MatchApiClient matchApiClient;
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
 
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderService(orderQueryService, orderCommandService, matchApiClient, eventPublisher);
+        orderService = new OrderService(orderQueryService, orderCommandService, matchApiClient);
     }
 
     @Test
@@ -58,16 +59,31 @@ public class OrderServiceTest {
         assertThat(orderDto.id()).isEqualTo(order.getId());
     }
 
+
     @Test
-    void 매수주문시_주문생성_이벤트를_발행한다() {
-        BuyOrderCommand command = createBuyOrderCommand();
-        Order order = createBuyOrder(command);
-        BuyOrderCreatedEvent event = BuyOrderCreatedEvent.from(order);
-        given(orderCommandService.createBuyOrder(command)).willReturn(order);
+    void 코인매수주문시_수량이_소수점4자리를_초과하면_예외가_발생한다() {
+        AssetDto asset = AssetDto.builder().id(1).symbol("BTC/KRW").currency(Currency.KRW).isActive(true).isDaily(true).koName("비트코인").usName("BTC")
+                .category(AssetsCategory.CRYPTO)
+                .build();
 
-        orderService.placeBuyOrder(command);
+        BuyOrderCommand command = BuyOrderCommand.builder().memberId(1L).orderType(OrderType.LIMIT).asset(asset).price(BigDecimal.valueOf(200)).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
+                .quantity(BigDecimal.valueOf(0.12345))
+                .build();
 
-        verify(eventPublisher, times(1)).publishEvent(event);
+        assertThatThrownBy(() -> orderService.placeBuyOrder(command))
+                .isInstanceOf(ApiException.class)
+                .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.INVALID_ORDER_QUANTITY);
+    }
+
+    @Test
+    void 주식매수주문시_수량이_정수가아니면_예외가_발생한다() {
+        BuyOrderCommand command = BuyOrderCommand.builder().memberId(1L).orderType(OrderType.LIMIT).asset(createAssetDto()).price(BigDecimal.valueOf(200)).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
+                .quantity(BigDecimal.valueOf(0.1))
+                .build();
+
+        assertThatThrownBy(() -> orderService.placeBuyOrder(command))
+                .isInstanceOf(ApiException.class)
+                .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.INVALID_ORDER_QUANTITY);
     }
 
     @Test
@@ -107,7 +123,7 @@ public class OrderServiceTest {
     void 주문취소시_주문업데이트는_OrderCommandService에_위임한다() {
         OrderCancelCommand command = new OrderCancelCommand(1000L, 1L);
         Order order = createBuyOrder(OrderStatus.PENDING);
-        given(orderQueryService.findById(command.orderId())).willReturn(order);
+        given(orderQueryService.findByIdForUpdate(command.orderId())).willReturn(order);
         given(orderCommandService.updateOrderStatus(order, OrderStatus.CANCELED))
                 .willReturn(OrderFixtureUtils.createBuyOrder(OrderStatus.CANCELED));
 
@@ -121,7 +137,7 @@ public class OrderServiceTest {
     void 주문취소시_체결엔진을_통해_검증_한다() {
         OrderCancelCommand command = new OrderCancelCommand(1000L, 1L);
         Order order = createBuyOrder(OrderStatus.PENDING);
-        given(orderQueryService.findById(command.orderId())).willReturn(order);
+        given(orderQueryService.findByIdForUpdate(command.orderId())).willReturn(order);
         given(orderCommandService.updateOrderStatus(order, OrderStatus.CANCELED))
                 .willReturn(OrderFixtureUtils.createBuyOrder(OrderStatus.CANCELED));
 
@@ -134,7 +150,7 @@ public class OrderServiceTest {
     @Test
     void 주문취소시_주문소유자와_요청자가_다르면_예외가_발생한다() {
         OrderCancelCommand command = new OrderCancelCommand(1000L, 2L);
-        given(orderQueryService.findById(command.orderId())).willReturn(OrderFixtureUtils.createBuyOrder(OrderStatus.PENDING));
+        given(orderQueryService.findByIdForUpdate(command.orderId())).willReturn(OrderFixtureUtils.createBuyOrder(OrderStatus.PENDING));
 
         assertThatThrownBy(() -> orderService.cancelOrder(command))
                 .isInstanceOf(ApiException.class)

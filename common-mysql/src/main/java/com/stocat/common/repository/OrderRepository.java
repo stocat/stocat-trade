@@ -24,6 +24,4 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     boolean existsByMemberIdAndSideAndCategoryAndCreatedAtBetween(
             Long memberId, TradeSide side, AssetsCategory category, LocalDateTime start, LocalDateTime end);
-
-    List<Order> findByStatusAndCreatedAtBefore(OrderStatus status, LocalDateTime before);
 }

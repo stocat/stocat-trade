@@ -1,7 +1,7 @@
 package com.stocat.tradeapi.order.controller.dto;
 
 import com.stocat.common.domain.order.OrderType;
-import com.stocat.tradeapi.infrastructure.dto.AssetDto;
+import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
