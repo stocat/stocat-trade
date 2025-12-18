@@ -11,22 +11,28 @@ import java.math.BigDecimal;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Entity
 @Builder
-@Table(name = "positions")
+@Table(
+        name = "positions",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_position_user_asset", columnNames = {"user_id", "asset_id"})
+        }
+)
 public class PositionEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id")
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "asset_id")
+    @Column(name = "asset_id", nullable = false)
     private Long assetId;
 
+    @Column(nullable = false)
     private BigDecimal quantity;
 
-    @Column(name = "avg_entry_price")
+    @Column(name = "avg_entry_price", nullable = false)
     private BigDecimal avgEntryPrice;
 
     public static PositionEntity create(Long userId,
