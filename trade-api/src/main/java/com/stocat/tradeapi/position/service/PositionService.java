@@ -1,7 +1,6 @@
 package com.stocat.tradeapi.position.service;
 
 import com.stocat.common.domain.position.PositionEntity;
-import com.stocat.common.domain.position.PositionStatus;
 import com.stocat.tradeapi.position.service.dto.PositionDto;
 import com.stocat.tradeapi.position.service.dto.command.GetPositionCommand;
 import com.stocat.tradeapi.position.service.dto.command.NewPositionCommand;
@@ -19,7 +18,9 @@ public class PositionService {
 
     public PositionDto getPositionById(GetPositionCommand command) {
         PositionEntity userPosition =
-                positionQueryService.getUserPosition(command.positionId(), command.userId());
+                positionQueryService.getPositionById(command.positionId());
+
+        // TODO: 유저의 아이디 일치 여부 검증
 
         return PositionDto.from(userPosition);
     }
@@ -37,19 +38,17 @@ public class PositionService {
     }
 
     public void createNewUserPosition(NewPositionCommand command) {
-        Optional<PositionEntity> entity = positionQueryService.getUserPositionByStatus(PositionStatus.OPEN);
+        Optional<PositionEntity> entity = positionQueryService.getUserPosition(command.assetId(), command.userId());
 
         if (entity.isEmpty()) {
             // OPEN 상태인 포지션이 없다면 신규 포지션 생성
             PositionEntity newEntity = PositionEntity.create(
                     command.userId(),
                     command.assetId(),
-                    PositionStatus.OPEN,
                     command.quantity(),
-                    command.avgEntryPrice(),
-                    command.openedAt()
+                    command.avgEntryPrice()
             );
-            positionQueryService.createNewUserPosition(newEntity);
+            positionQueryService.saveUserPosition(newEntity);
             return;
         }
 

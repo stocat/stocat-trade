@@ -1,7 +1,6 @@
 package com.stocat.tradeapi.position.service;
 
 import com.stocat.common.domain.position.PositionEntity;
-import com.stocat.common.domain.position.PositionStatus;
 import com.stocat.common.exception.ApiException;
 import com.stocat.common.repository.PositionRepository;
 import com.stocat.tradeapi.position.exception.PositionErrorCode;
@@ -19,9 +18,9 @@ public class PositionQueryService {
 
     private final PositionRepository positionRepository;
 
-    public PositionEntity getUserPosition(Long id, Long userId) {
+    public PositionEntity getPositionById(Long id) {
         return positionRepository
-                .findByIdAndUserId(id, userId)
+                .findById(id)
                 .orElseThrow(() -> new ApiException(PositionErrorCode.NOT_FOUND_USER_POSITION));
     }
 
@@ -29,11 +28,11 @@ public class PositionQueryService {
         return positionRepository.findPositionsByUserId(userId);
     }
 
-    public Optional<PositionEntity> getUserPositionByStatus(PositionStatus status) {
-        return positionRepository.findFirstByStatus(status);
+    public Optional<PositionEntity> getUserPosition(Long assetId, Long userId) {
+        return positionRepository.findFirstByAssetIdAndUserId(assetId, userId);
     }
 
-    public PositionEntity createNewUserPosition(PositionEntity entity) {
+    public PositionEntity saveUserPosition(PositionEntity entity) {
         return positionRepository.save(entity);
     }
 }

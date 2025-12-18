@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -25,37 +24,22 @@ public class PositionEntity extends BaseEntity {
     @Column(name = "asset_id")
     private Long assetId;
 
-    @Enumerated(EnumType.STRING)
-    private PositionStatus status;
-
     private BigDecimal quantity;
 
     @Column(name = "avg_entry_price")
     private BigDecimal avgEntryPrice;
 
-    @Column(name = "expires_at")
-    private LocalDateTime expiresAt;
-
-    @Column(name = "opened_at")
-    private LocalDateTime openedAt;
-
-    @Column(name = "closed_at")
-    private LocalDateTime closedAt;
-
     public static PositionEntity create(Long userId,
                                         Long assetId,
-                                        PositionStatus status,
                                         BigDecimal quantity,
-                                        BigDecimal avgEntryPrice,
-                                        LocalDateTime openedAt) {
+                                        BigDecimal avgEntryPrice
+    ) {
 
         return PositionEntity.builder()
                 .userId(userId)
                 .assetId(assetId)
-                .status(status)
                 .quantity(quantity)
                 .avgEntryPrice(avgEntryPrice)
-                .openedAt(openedAt)
                 .build();
     }
 }
