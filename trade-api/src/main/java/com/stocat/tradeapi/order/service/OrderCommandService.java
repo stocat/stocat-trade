@@ -1,11 +1,11 @@
-package com.stocat.tradeapi.service;
+package com.stocat.tradeapi.order.service;
 
-import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.TradeSide;
+import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
-import com.stocat.tradeapi.infrastructure.dto.AssetDto;
 import com.stocat.common.repository.OrderRepository;
-import com.stocat.tradeapi.service.dto.command.BuyOrderCommand;
+import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +28,14 @@ public class OrderCommandService {
                 .price(command.price())
                 .build();
 
+        return orderRepository.save(order);
+    }
+
+    public Order updateOrderStatus(
+            @NonNull Order order,
+            @NonNull OrderStatus targetStatus
+    ) {
+        order.updateStatus(targetStatus);
         return orderRepository.save(order);
     }
 }

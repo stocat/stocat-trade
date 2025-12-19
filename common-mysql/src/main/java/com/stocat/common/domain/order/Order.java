@@ -12,6 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +21,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -44,12 +44,16 @@ public class Order extends BaseEntity {
     private AssetsCategory category;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 3)
+    private Currency currency;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private TradeSide side;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 3)
-    private Currency currency;
+    @Column(nullable = false, length = 10)
+    private OrderType type;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -58,9 +62,17 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private BigDecimal quantity;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private BigDecimal price;
 
-    @Column(nullable = true)
-    private LocalDateTime executedAt;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private OrderTif tif;
+
+    public void updateStatus(OrderStatus status) {
+        if (!this.status.canTransitionTo(status)) {
+            throw new IllegalStateException(this.status + "에서" + status + "상태로 변경할 수 없습니다.");
+        }
+        this.status = status;
+    }
 }
