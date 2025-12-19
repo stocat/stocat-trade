@@ -48,4 +48,12 @@ public class PositionEntity extends BaseEntity {
                 .avgEntryPrice(avgEntryPrice)
                 .build();
     }
+
+    public void substract(BigDecimal quantity) {
+        // TODO
+    }
+
+    public void add(BigDecimal additionalQuantity, BigDecimal additionalAvgEntryPrice) {
+        // TODO
+    }
 }

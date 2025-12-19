@@ -1,12 +1,15 @@
 package com.stocat.tradeapi.position.service;
 
 import com.stocat.common.domain.position.PositionEntity;
+import com.stocat.common.exception.ApiException;
+import com.stocat.tradeapi.position.exception.PositionErrorCode;
 import com.stocat.tradeapi.position.service.dto.PositionDto;
 import com.stocat.tradeapi.position.service.dto.command.GetPositionCommand;
 import com.stocat.tradeapi.position.service.dto.command.NewPositionCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,21 +40,56 @@ public class PositionService {
                 .toList();
     }
 
-    public void createNewUserPosition(NewPositionCommand command) {
+    public void updateUserPosition(NewPositionCommand command) {
+        // 업데이트할 데이터가 존재하는지 확인
+        validateQuantity(command.quantity());
+
         Optional<PositionEntity> entity = positionQueryService.getUserPosition(command.assetId(), command.userId());
 
         if (entity.isEmpty()) {
-            // OPEN 상태인 포지션이 없다면 신규 포지션 생성
-            PositionEntity newEntity = PositionEntity.create(
-                    command.userId(),
-                    command.assetId(),
-                    command.quantity(),
-                    command.avgEntryPrice()
-            );
-            positionQueryService.saveUserPosition(newEntity);
+            createNewPosition(command);
             return;
         }
 
-        // TODO: OPEN 상태인 포지션이 있으면 수량 및 평균단가 갱신
+        PositionEntity existingPosition = entity.get();
+        applyQuantityChange(existingPosition, command.quantity(), command.avgEntryPrice());
+        positionQueryService.saveUserPosition(existingPosition);
+    }
+
+    private void createNewPosition(NewPositionCommand command) {
+        if (command.quantity().signum() < 0) {
+            throw new ApiException(PositionErrorCode.POSITION_NOT_FOUND_FOR_SELL);
+        }
+
+        PositionEntity newEntity = PositionEntity.create(
+                command.userId(),
+                command.assetId(),
+                command.quantity(),
+                command.avgEntryPrice()
+        );
+        positionQueryService.saveUserPosition(newEntity);
+    }
+
+    private void applyQuantityChange(PositionEntity entity,
+                                     BigDecimal quantityDelta,
+                                     BigDecimal additionalAvgEntryPrice) {
+        if (quantityDelta.signum() > 0) {
+            entity.add(quantityDelta, additionalAvgEntryPrice);
+            return;
+        }
+
+        BigDecimal sellQuantity = quantityDelta.abs();
+
+        if (entity.getQuantity().compareTo(sellQuantity) < 0) {
+            throw new ApiException(PositionErrorCode.INSUFFICIENT_POSITION_QUANTITY);
+        }
+
+        entity.substract(sellQuantity);
+    }
+
+    private void validateQuantity(BigDecimal quantity) {
+        if (quantity == null || quantity.signum() == 0) {
+            throw new ApiException(PositionErrorCode.INVALID_POSITION_QUANTITY);
+        }
     }
 }

@@ -60,7 +60,7 @@ public class PositionController {
     public ResponseEntity<ApiResponse<Void>> newUserPosition(
             @Valid @RequestBody NewPositionRequest request) {
         NewPositionCommand command = NewPositionCommand.from(request);
-        positionService.createNewUserPosition(command);
+        positionService.updateUserPosition(command);
 
         return ResponseEntity.ok(ApiResponse.success());
     }
