@@ -7,6 +7,7 @@ import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.infrastructure.matchapi.MatchApiClient;
 import com.stocat.tradeapi.infrastructure.matchapi.dto.BuyOrderSubmissionRequest;
+import com.stocat.tradeapi.infrastructure.quoteapi.QuoteApiClient;
 import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
@@ -27,12 +28,14 @@ public class OrderService {
     private final OrderCommandService orderCommandService;
 
     private final MatchApiClient matchApiClient;
+    private final QuoteApiClient quoteApiClient;
 
     @Transactional
     public OrderDto placeBuyOrder(BuyOrderCommand command) {
-        validateBuyOrder(command);
+        AssetDto asset = quoteApiClient.fetchAsset(command.assetSymbol());
+        validateBuyOrder(command, asset);
 
-        Order order = orderCommandService.createBuyOrder(command);
+        Order order = orderCommandService.createBuyOrder(command, asset);
         OrderDto dto = OrderDto.from(order);
 
         matchApiClient.submitBuyOrder(BuyOrderSubmissionRequest.from(order));
@@ -43,10 +46,8 @@ public class OrderService {
     }
 
 
-    private void validateBuyOrder(BuyOrderCommand command) {
-        AssetDto asset = command.asset();
-
-        if (!isValidBuyOrderQuantity(command)) {
+    private void validateBuyOrder(BuyOrderCommand command, AssetDto asset) {
+        if (!isValidBuyOrderQuantity(command, asset)) {
             throw new ApiException(TradeErrorCode.INVALID_ORDER_QUANTITY);
         }
 
@@ -64,9 +65,7 @@ public class OrderService {
         }
     }
 
-    private boolean isValidBuyOrderQuantity(BuyOrderCommand command) {
-        AssetDto asset = command.asset();
-
+    private boolean isValidBuyOrderQuantity(BuyOrderCommand command, AssetDto asset) {
         if (command.quantity().compareTo(BigDecimal.ZERO) <= 0) {
             return false;
         }

@@ -4,6 +4,7 @@ import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.repository.OrderRepository;
+import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static com.stocat.tradeapi.order.OrderFixtureUtils.createAssetDto;
 import static com.stocat.tradeapi.order.OrderFixtureUtils.createBuyOrder;
 import static com.stocat.tradeapi.order.OrderFixtureUtils.createBuyOrderCommand;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,10 +36,11 @@ public class OrderCommandServiceTest {
     @Test
     void 매수주문_생성시_주문초기상태는_CREATED이다() {
         BuyOrderCommand command = createBuyOrderCommand();
+        AssetDto asset = createAssetDto();
         given(orderRepository.save(any(Order.class)))
                 .will(invocation -> invocation.getArgument(0));
 
-        Order saved = orderCommandService.createBuyOrder(command);
+        Order saved = orderCommandService.createBuyOrder(command, asset);
 
         assertThat(saved).satisfies(o -> {
             assertThat(o.getSide()).isEqualTo(TradeSide.BUY);

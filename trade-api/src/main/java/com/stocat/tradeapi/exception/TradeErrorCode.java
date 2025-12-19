@@ -14,7 +14,8 @@ public enum TradeErrorCode implements ErrorCode {
     ORDER_PERMISSION_DENIED(ErrorDomain.TRADE_API.offset() + 7, "주문 요청 권한이 없습니다."),
     INVALID_ORDER_QUANTITY(ErrorDomain.TRADE_API.offset() + 8, "주문 수량이 유효하지 않습니다."),
 
-    MATCHING_ENGINE_ERROR(ErrorDomain.TRADE_API.offset() + 50, "체결 엔진 오류로 주문을 처리하지 못했습니다."),
+    MATCH_API_ERROR(ErrorDomain.TRADE_API.offset() + 50, "Match Api 오류로 주문을 처리하지 못했습니다."),
+    QUOTE_API_ERROR(ErrorDomain.TRADE_API.offset() + 51, "Quote Api 오류로 주문을 처리하지 못했습니다."),
 
     ORDER_NOT_FOUND(ErrorDomain.TRADE_API.offset() + 90, "존재하지 않는 주문입니다."),
     ;

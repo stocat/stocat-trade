@@ -16,8 +16,6 @@ public record OrderResponse(
         Integer assetId,
         @Schema(description = "매수/매도 구분", example = "BUY | SELL")
         TradeSide side,
-        @Schema(description = "거래 통화", example = "KRW | USD | BTC | USDT")
-        Currency currency,
         @Schema(description = "주문 상태", example = "PENDING | FILLED | CANCELED | REJECTED")
         String status,
         @Schema(description = "거래 수량", example = "PENDING | FILLED | CANCELED | REJECTED")
@@ -32,7 +30,6 @@ public record OrderResponse(
                 order.id(),
                 order.assetId(),
                 order.side(),
-                order.currency(),
                 order.status().name(),
                 order.quantity(),
                 order.price(),

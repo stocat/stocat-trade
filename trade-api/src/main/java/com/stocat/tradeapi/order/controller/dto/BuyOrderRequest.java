@@ -46,7 +46,7 @@ public record BuyOrderRequest(
         return BuyOrderCommand.builder()
                 .memberId(memberId)
                 .orderType(orderType)
-                .asset(AssetDto.builder().symbol(symbol).build())
+                .assetSymbol(symbol)
                 .quantity(quantity)
                 .price(price)
                 .requestTime(now)

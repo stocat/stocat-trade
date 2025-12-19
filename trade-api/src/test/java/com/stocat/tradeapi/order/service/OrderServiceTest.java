@@ -9,6 +9,7 @@ import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.infrastructure.matchapi.MatchApiClient;
 import com.stocat.tradeapi.infrastructure.matchapi.dto.BuyOrderSubmissionRequest;
+import com.stocat.tradeapi.infrastructure.quoteapi.QuoteApiClient;
 import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.OrderFixtureUtils;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
@@ -40,31 +41,35 @@ public class OrderServiceTest {
     private OrderCommandService orderCommandService;
     @Mock
     private MatchApiClient matchApiClient;
+    @Mock
+    private QuoteApiClient quoteApiClient;
 
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderService(orderQueryService, orderCommandService, matchApiClient);
+        orderService = new OrderService(orderQueryService, orderCommandService, matchApiClient, quoteApiClient);
     }
 
     @Test
     void 매수주문시_주문생성은_OrderCommandService에_위임한다() {
         BuyOrderCommand command = createBuyOrderCommand();
+        AssetDto asset = createAssetDto();
         Order order = createBuyOrder(command);
-        given(orderCommandService.createBuyOrder(command)).willReturn(order);
+        given(orderCommandService.createBuyOrder(command, asset)).willReturn(order);
 
         OrderDto orderDto = orderService.placeBuyOrder(command);
 
-        verify(orderCommandService, times(1)).createBuyOrder(command);
+        verify(orderCommandService, times(1)).createBuyOrder(command, asset);
         assertThat(orderDto.id()).isEqualTo(order.getId());
     }
 
     @Test
     void 매수주문시_주문을_체결엔진에_제출한다() {
         BuyOrderCommand command = createBuyOrderCommand();
+        AssetDto asset = createAssetDto();
         Order order = createBuyOrder(command);
-        given(orderCommandService.createBuyOrder(command)).willReturn(order);
+        given(orderCommandService.createBuyOrder(command, asset)).willReturn(order);
 
         orderService.placeBuyOrder(command);
 
@@ -75,11 +80,7 @@ public class OrderServiceTest {
 
     @Test
     void 코인매수주문시_수량이_소수점4자리를_초과하면_예외가_발생한다() {
-        AssetDto asset = AssetDto.builder().id(1).symbol("BTC/KRW").currency(Currency.KRW).isActive(true).isDaily(true).koName("비트코인").usName("BTC")
-                .category(AssetsCategory.CRYPTO)
-                .build();
-
-        BuyOrderCommand command = BuyOrderCommand.builder().memberId(1L).orderType(OrderType.LIMIT).asset(asset).price(BigDecimal.valueOf(200)).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
+        BuyOrderCommand command = BuyOrderCommand.builder().memberId(1L).orderType(OrderType.LIMIT).assetSymbol("BTC/KRW").price(BigDecimal.valueOf(200)).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
                 .quantity(BigDecimal.valueOf(0.12345))
                 .build();
 
@@ -90,7 +91,7 @@ public class OrderServiceTest {
 
     @Test
     void 주식매수주문시_수량이_정수가아니면_예외가_발생한다() {
-        BuyOrderCommand command = BuyOrderCommand.builder().memberId(1L).orderType(OrderType.LIMIT).asset(createAssetDto()).price(BigDecimal.valueOf(200)).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
+        BuyOrderCommand command = BuyOrderCommand.builder().memberId(1L).orderType(OrderType.LIMIT).assetSymbol("NVDA").price(BigDecimal.valueOf(200)).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
                 .quantity(BigDecimal.valueOf(0.1))
                 .build();
 
@@ -113,7 +114,8 @@ public class OrderServiceTest {
     @Test
     void 매수주문시_동일_카테고리에_체결대기중인_종목이_있으면_예외가_발생한다() {
         BuyOrderCommand command = createBuyOrderCommand();
-        given(orderQueryService.existsPendingBuyOrdersInCategory(command.memberId(), command.asset().category()))
+        AssetDto asset = createAssetDto();
+        given(orderQueryService.existsPendingBuyOrdersInCategory(command.memberId(), asset.category()))
                 .willReturn(true);
 
         assertThatThrownBy(() -> orderService.placeBuyOrder(command))
@@ -124,7 +126,8 @@ public class OrderServiceTest {
     @Test
     void 매수주문시_동일_카테고리에_금일_매수체결된_거래가_있으면_예외가_발생한다() {
         BuyOrderCommand command = createBuyOrderCommand();
-        given(orderQueryService.existsTodayExecutedBuyOrdersInCategory(command.memberId(), command.asset().category(), command.requestTime()))
+        AssetDto asset = createAssetDto();
+        given(orderQueryService.existsTodayExecutedBuyOrdersInCategory(command.memberId(), asset.category(), command.requestTime()))
                 .willReturn(true);
 
         assertThatThrownBy(() -> orderService.placeBuyOrder(command))

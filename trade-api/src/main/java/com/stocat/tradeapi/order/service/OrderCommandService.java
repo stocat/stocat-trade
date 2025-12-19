@@ -4,6 +4,7 @@ import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.repository.OrderRepository;
+import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -16,12 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderCommandService {
     private final OrderRepository orderRepository;
 
-    public Order createBuyOrder(BuyOrderCommand command) {
+    public Order createBuyOrder(BuyOrderCommand command, AssetDto asset) {
         Order order = Order.builder()
                 .memberId(command.memberId())
-                .assetId(command.asset().id())
-                .currency(command.asset().currency())
-                .category(command.asset().category())
+                .assetId(asset.id())
                 .side(TradeSide.BUY)
                 .status(OrderStatus.PENDING)
                 .quantity(command.quantity())

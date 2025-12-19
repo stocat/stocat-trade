@@ -40,12 +40,12 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private Integer assetId;
 
-    @Column(nullable = false)
-    private AssetsCategory category;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 3)
-    private Currency currency;
+//    @Column(nullable = false)
+//    private AssetsCategory category;
+//
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false, length = 3)
+//    private Currency currency;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
