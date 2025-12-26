@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -49,11 +50,30 @@ public class PositionEntity extends BaseEntity {
                 .build();
     }
 
-    public void substract(BigDecimal quantity) {
-        // TODO
+    public void subtract(@NonNull BigDecimal quantity) {
+
+        if (this.quantity.compareTo(quantity) < 0) {
+            throw new IllegalStateException("보유 수량보다 많이 뺄 수 없습니다.");
+        }
+
+        this.quantity = this.quantity.subtract(quantity);
     }
 
-    public void add(BigDecimal additionalQuantity, BigDecimal additionalAvgEntryPrice) {
-        // TODO
+    public void add(@NonNull BigDecimal additionalQuantity, @NonNull BigDecimal additionalAvgEntryPrice) {
+        if (additionalQuantity.signum() <= 0) {
+            throw new IllegalArgumentException("추가 수량은 0보다 커야 합니다.");
+        }
+
+        BigDecimal originalTotalAvgEntryPrice = this.quantity.multiply(this.avgEntryPrice);
+        BigDecimal additionalTotalAvgEntryPrice = additionalQuantity.multiply(additionalAvgEntryPrice);
+
+        BigDecimal totalPrice = originalTotalAvgEntryPrice.add(additionalTotalAvgEntryPrice);
+        BigDecimal totalQuantity = this.quantity.add(additionalQuantity);
+
+        BigDecimal accumulatedAvgEntryPrice =
+                totalPrice.divide(totalQuantity, RoundingMode.HALF_UP);
+
+        this.quantity = totalQuantity;
+        this.avgEntryPrice = accumulatedAvgEntryPrice;
     }
 }
