@@ -41,9 +41,6 @@ public class PositionService {
     }
 
     public void updateUserPosition(NewPositionCommand command) {
-        // 업데이트할 데이터가 존재하는지 확인
-        validateQuantity(command.quantity());
-
         Optional<PositionEntity> entity = positionQueryService.getUserPosition(command.assetId(), command.userId());
 
         if (entity.isEmpty()) {
@@ -57,39 +54,40 @@ public class PositionService {
     }
 
     private void createNewPosition(NewPositionCommand command) {
-        if (command.quantity().signum() < 0) {
+        if (command.quantity() == null || command.quantity().signum() <= 0) {
             throw new ApiException(PositionErrorCode.POSITION_NOT_FOUND_FOR_SELL);
         }
 
-        PositionEntity newEntity = PositionEntity.create(
-                command.userId(),
-                command.assetId(),
-                command.quantity(),
-                command.avgEntryPrice()
-        );
-        positionQueryService.saveUserPosition(newEntity);
+        try {
+            PositionEntity newEntity = PositionEntity.create(
+                    command.userId(),
+                    command.assetId(),
+                    command.quantity(),
+                    command.avgEntryPrice()
+            );
+            positionQueryService.saveUserPosition(newEntity);
+        } catch (IllegalArgumentException e) {
+            throw new ApiException(PositionErrorCode.INVALID_POSITION_QUANTITY, e);
+        }
     }
 
     private void applyQuantityChange(PositionEntity entity,
                                      BigDecimal quantityDelta,
                                      BigDecimal additionalAvgEntryPrice) {
-        if (quantityDelta.signum() > 0) {
-            entity.add(quantityDelta, additionalAvgEntryPrice);
-            return;
-        }
+        try {
+            if (quantityDelta.signum() > 0) {
+                entity.add(quantityDelta, additionalAvgEntryPrice);
+                return;
+            }
 
-        BigDecimal sellQuantity = quantityDelta.abs();
+            if (quantityDelta.signum() < 0) {
+                entity.subtract(quantityDelta.abs());
+                return;
+            }
 
-        if (entity.getQuantity().compareTo(sellQuantity) < 0) {
-            throw new ApiException(PositionErrorCode.INSUFFICIENT_POSITION_QUANTITY);
-        }
-
-        entity.substract(sellQuantity);
-    }
-
-    private void validateQuantity(BigDecimal quantity) {
-        if (quantity == null || quantity.signum() == 0) {
             throw new ApiException(PositionErrorCode.INVALID_POSITION_QUANTITY);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            throw new ApiException(PositionErrorCode.INVALID_POSITION_QUANTITY, e);
         }
     }
 }
