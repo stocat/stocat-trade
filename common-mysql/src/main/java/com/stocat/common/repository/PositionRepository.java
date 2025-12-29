@@ -10,5 +10,5 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
 
     List<PositionEntity> findPositionsByUserId(Long userId);
 
-    Optional<PositionEntity> findFirstByAssetIdAndUserId(Long assetId, Long userId);
+    Optional<PositionEntity> findByAssetIdAndUserId(Long assetId, Long userId);
 }

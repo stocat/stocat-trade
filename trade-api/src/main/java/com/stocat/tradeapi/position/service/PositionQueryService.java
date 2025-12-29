@@ -29,7 +29,7 @@ public class PositionQueryService {
     }
 
     public Optional<PositionEntity> getUserPosition(Long assetId, Long userId) {
-        return positionRepository.findFirstByAssetIdAndUserId(assetId, userId);
+        return positionRepository.findByAssetIdAndUserId(assetId, userId);
     }
 
     public PositionEntity saveUserPosition(PositionEntity entity) {
