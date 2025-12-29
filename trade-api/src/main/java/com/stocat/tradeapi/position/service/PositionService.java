@@ -57,37 +57,28 @@ public class PositionService {
         if (command.quantity() == null || command.quantity().signum() <= 0) {
             throw new ApiException(PositionErrorCode.POSITION_NOT_FOUND_FOR_SELL);
         }
-
-        try {
-            PositionEntity newEntity = PositionEntity.create(
-                    command.userId(),
-                    command.assetId(),
-                    command.quantity(),
-                    command.avgEntryPrice()
-            );
-            positionQueryService.saveUserPosition(newEntity);
-        } catch (IllegalArgumentException e) {
-            throw new ApiException(PositionErrorCode.INVALID_POSITION_QUANTITY, e);
-        }
+        PositionEntity newEntity = PositionEntity.create(
+                command.userId(),
+                command.assetId(),
+                command.quantity(),
+                command.avgEntryPrice()
+        );
+        positionQueryService.saveUserPosition(newEntity);
     }
 
     private void applyQuantityChange(PositionEntity entity,
                                      BigDecimal quantityDelta,
                                      BigDecimal additionalAvgEntryPrice) {
-        try {
-            if (quantityDelta.signum() > 0) {
-                entity.add(quantityDelta, additionalAvgEntryPrice);
-                return;
-            }
-
-            if (quantityDelta.signum() < 0) {
-                entity.subtract(quantityDelta.abs());
-                return;
-            }
-
+        if (quantityDelta.signum() == 0) {
             throw new ApiException(PositionErrorCode.INVALID_POSITION_QUANTITY);
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            throw new ApiException(PositionErrorCode.INVALID_POSITION_QUANTITY, e);
         }
+
+
+        if (quantityDelta.signum() > 0) {
+            entity.add(quantityDelta, additionalAvgEntryPrice);
+            return;
+        }
+
+        entity.subtract(quantityDelta.abs());
     }
 }
