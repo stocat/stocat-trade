@@ -2,7 +2,7 @@ package com.stocat.tradeapi.position.service;
 
 import com.stocat.common.domain.position.PositionEntity;
 import com.stocat.common.exception.ApiException;
-import com.stocat.tradeapi.position.service.dto.command.NewPositionCommand;
+import com.stocat.tradeapi.position.service.dto.command.PositionUpsertCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,9 +15,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PositionServiceTest {
@@ -34,7 +32,7 @@ class PositionServiceTest {
 
     @Test
     void 포지션이_없으면_신규_생성한다() {
-        NewPositionCommand command = new NewPositionCommand(1L, 10L, new BigDecimal("5.00"), new BigDecimal("100.00"));
+        PositionUpsertCommand command = new PositionUpsertCommand(1L, 10L, new BigDecimal("5.00"), new BigDecimal("100.00"));
         when(positionQueryService.getUserPosition(command.assetId(), command.userId()))
                 .thenReturn(Optional.empty());
 
@@ -55,7 +53,7 @@ class PositionServiceTest {
         PositionEntity existing = PositionEntity.create(1L, 10L, new BigDecimal("2.00"), new BigDecimal("50.00"));
         when(positionQueryService.getUserPosition(10L, 1L)).thenReturn(Optional.of(existing));
 
-        NewPositionCommand addCommand = new NewPositionCommand(1L, 10L, new BigDecimal("3.00"), new BigDecimal("100.00"));
+        PositionUpsertCommand addCommand = new PositionUpsertCommand(1L, 10L, new BigDecimal("3.00"), new BigDecimal("100.00"));
 
         positionService.updateUserPosition(addCommand);
 
@@ -69,7 +67,7 @@ class PositionServiceTest {
         PositionEntity existing = PositionEntity.create(2L, 11L, new BigDecimal("2.00"), new BigDecimal("70.00"));
         when(positionQueryService.getUserPosition(11L, 2L)).thenReturn(Optional.of(existing));
 
-        NewPositionCommand invalidCommand = new NewPositionCommand(2L, 11L, BigDecimal.ZERO, new BigDecimal("70.00"));
+        PositionUpsertCommand invalidCommand = new PositionUpsertCommand(2L, 11L, BigDecimal.ZERO, new BigDecimal("70.00"));
 
         assertThrows(ApiException.class, () -> positionService.updateUserPosition(invalidCommand));
         verify(positionQueryService).getUserPosition(11L, 2L);

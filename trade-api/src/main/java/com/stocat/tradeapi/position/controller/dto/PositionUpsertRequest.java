@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(name = "NewPositionRequest", description = "새 포지션 생성 요청")
-public class NewPositionRequest {
+public class PositionUpsertRequest {
 
     @Schema(description = "유저 ID", example = "2")
     private Long userId;

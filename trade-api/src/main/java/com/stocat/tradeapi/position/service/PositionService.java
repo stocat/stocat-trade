@@ -5,7 +5,7 @@ import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.position.exception.PositionErrorCode;
 import com.stocat.tradeapi.position.service.dto.PositionDto;
 import com.stocat.tradeapi.position.service.dto.command.GetPositionCommand;
-import com.stocat.tradeapi.position.service.dto.command.NewPositionCommand;
+import com.stocat.tradeapi.position.service.dto.command.PositionUpsertCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +40,7 @@ public class PositionService {
                 .toList();
     }
 
-    public void updateUserPosition(NewPositionCommand command) {
+    public void updateUserPosition(PositionUpsertCommand command) {
         Optional<PositionEntity> entity = positionQueryService.getUserPosition(command.assetId(), command.userId());
 
         if (entity.isEmpty()) {
@@ -53,7 +53,7 @@ public class PositionService {
         positionQueryService.saveUserPosition(existingPosition);
     }
 
-    private void createNewPosition(NewPositionCommand command) {
+    private void createNewPosition(PositionUpsertCommand command) {
         if (command.quantity() == null || command.quantity().signum() <= 0) {
             throw new ApiException(PositionErrorCode.POSITION_NOT_FOUND_FOR_SELL);
         }

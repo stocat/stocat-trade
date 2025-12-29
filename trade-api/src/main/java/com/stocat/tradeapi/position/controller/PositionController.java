@@ -1,12 +1,12 @@
 package com.stocat.tradeapi.position.controller;
 
 import com.stocat.common.response.ApiResponse;
-import com.stocat.tradeapi.position.controller.dto.NewPositionRequest;
 import com.stocat.tradeapi.position.controller.dto.PositionResponse;
+import com.stocat.tradeapi.position.controller.dto.PositionUpsertRequest;
 import com.stocat.tradeapi.position.service.PositionService;
 import com.stocat.tradeapi.position.service.dto.PositionDto;
 import com.stocat.tradeapi.position.service.dto.command.GetPositionCommand;
-import com.stocat.tradeapi.position.service.dto.command.NewPositionCommand;
+import com.stocat.tradeapi.position.service.dto.command.PositionUpsertCommand;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -58,8 +58,8 @@ public class PositionController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "포지션 생성/반영 성공")
     @GetMapping()
     public ResponseEntity<ApiResponse<Void>> newUserPosition(
-            @Valid @RequestBody NewPositionRequest request) {
-        NewPositionCommand command = NewPositionCommand.from(request);
+            @Valid @RequestBody PositionUpsertRequest request) {
+        PositionUpsertCommand command = PositionUpsertCommand.from(request);
         positionService.updateUserPosition(command);
 
         return ResponseEntity.ok(ApiResponse.success());
