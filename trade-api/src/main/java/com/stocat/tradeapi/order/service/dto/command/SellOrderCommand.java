@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record SellOrderCommand (
-        Long memberId,
+        Long userId,
         String assetSymbol,
         OrderType orderType,
         BigDecimal quantity,

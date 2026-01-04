@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @Builder
 public record BuyOrderSubmissionRequest(
         Long orderId,
-        Long memberId,
+        Long userId,
         OrderType orderType,
         Long assetId,
         BigDecimal quantity,
@@ -20,7 +20,7 @@ public record BuyOrderSubmissionRequest(
     public static BuyOrderSubmissionRequest from(Order order) {
         return BuyOrderSubmissionRequest.builder()
                 .orderId(order.getId())
-                .memberId(order.getMemberId())
+                .userId(order.getUserId())
                 .orderType(order.getType())
                 .assetId(order.getAssetId())
                 .quantity(order.getQuantity())

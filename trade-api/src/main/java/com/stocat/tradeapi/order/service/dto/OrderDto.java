@@ -1,7 +1,5 @@
 package com.stocat.tradeapi.order.service.dto;
 
-import com.stocat.common.domain.AssetsCategory;
-import com.stocat.common.domain.Currency;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.OrderStatus;
@@ -15,7 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 public record OrderDto(
         Long id,
-        Long memberId,
+        Long userId,
         Long assetId,
         TradeSide side,
         OrderType type,
@@ -30,7 +28,7 @@ public record OrderDto(
     public static OrderDto from(Order order) {
         return new OrderDto(
                 order.getId(),
-                order.getMemberId(),
+                order.getUserId(),
                 order.getAssetId(),
                 order.getSide(),
                 order.getType(),

@@ -1,6 +1,5 @@
 package com.stocat.tradeapi.order.service;
 
-import com.stocat.common.domain.AssetsCategory;
 import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
@@ -15,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -33,22 +33,14 @@ public class OrderQueryService {
                 .orElseThrow(() -> new ApiException(TradeErrorCode.ORDER_NOT_FOUND));
     }
 
-    public boolean existsPendingBuyOrdersInCategory(
-            @NonNull Long memberId,
-            @NonNull AssetsCategory category
-    ) {
-        return orderRepository.existsByMemberIdAndSideAndCategoryAndStatus(
-                memberId, TradeSide.BUY, category, OrderStatus.PENDING);
-    }
-
-    public boolean existsTodayExecutedBuyOrdersInCategory(
-            @NonNull Long memberId,
-            @NonNull AssetsCategory category,
+    public List<Order> findUserBuyOrdersToday(
+            @NonNull Long userId,
             @NonNull LocalDateTime now
     ) {
         LocalDateTime todayStart = now.toLocalDate().atStartOfDay();
         LocalDateTime todayEnd = now.toLocalDate().atTime(LocalTime.MAX);
-        return orderRepository.existsByMemberIdAndSideAndCategoryAndCreatedAtBetween
-                (memberId, TradeSide.BUY, category, todayStart, todayEnd);
+
+        return orderRepository.findByUserIdAndSideAndCreatedAtBetween(userId, TradeSide.BUY, todayStart, todayEnd);
+
     }
 }

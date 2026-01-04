@@ -7,6 +7,7 @@ import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.infrastructure.matchapi.MatchApiClient;
 import com.stocat.tradeapi.infrastructure.matchapi.dto.BuyOrderSubmissionRequest;
+import com.stocat.tradeapi.infrastructure.quoteapi.QuoteApiClient;
 import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.OrderFixtureUtils;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
@@ -20,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static com.stocat.tradeapi.order.OrderFixtureUtils.createBuyOrder;
 import static com.stocat.tradeapi.order.OrderFixtureUtils.createBuyOrderCommand;
@@ -38,13 +40,15 @@ public class OrderServiceTest {
     @Mock
     private OrderCommandService orderCommandService;
     @Mock
+    private QuoteApiClient quoteApiClient;
+    @Mock
     private MatchApiClient matchApiClient;
 
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderService(orderQueryService, orderCommandService, matchApiClient);
+        orderService = new OrderService(orderQueryService, orderCommandService, quoteApiClient, matchApiClient);
     }
 
     @Test
@@ -75,7 +79,7 @@ public class OrderServiceTest {
 
     @Test
     void 코인매수주문시_수량이_소수점4자리를_초과하면_예외가_발생한다() {
-        BuyOrderCommand command = BuyOrderCommand.builder().memberId(1L).orderType(OrderType.LIMIT).assetSymbol("BTC/KRW").price(BigDecimal.valueOf(200)).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
+        BuyOrderCommand command = BuyOrderCommand.builder().userId(1L).orderType(OrderType.LIMIT).assetSymbol("BTC/KRW").price(BigDecimal.valueOf(200)).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
                 .quantity(BigDecimal.valueOf(0.12345))
                 .build();
         AssetDto asset = createCryptoAssetDto();
@@ -87,7 +91,7 @@ public class OrderServiceTest {
 
     @Test
     void 주식매수주문시_수량이_정수가아니면_예외가_발생한다() {
-        BuyOrderCommand command = BuyOrderCommand.builder().memberId(1L).orderType(OrderType.LIMIT).assetSymbol("NVDA").price(BigDecimal.valueOf(200)).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
+        BuyOrderCommand command = BuyOrderCommand.builder().userId(1L).orderType(OrderType.LIMIT).assetSymbol("NVDA").price(BigDecimal.valueOf(200)).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
                 .quantity(BigDecimal.valueOf(0.1))
                 .build();
         AssetDto asset = createUsdAssetDto();
@@ -99,27 +103,18 @@ public class OrderServiceTest {
     }
 
     @Test
-    void 매수주문시_동일_카테고리에_체결대기중인_종목이_있으면_예외가_발생한다() {
+    void 매수주문시_동일_카테고리에_취소되지_않은_주문이_있으면_예외가_발생한다() {
         BuyOrderCommand command = createBuyOrderCommand();
         AssetDto asset = createUsdAssetDto();
-        given(orderQueryService.existsPendingBuyOrdersInCategory(command.memberId(), asset.category()))
-                .willReturn(true);
+
+        Order previousOrder = createBuyOrder(OrderStatus.PENDING);
+        given(orderQueryService.findUserBuyOrdersToday(command.userId(), command.requestTime()))
+                .willReturn(List.of(previousOrder));
+        given(quoteApiClient.fetchAssetById(previousOrder.getAssetId())).willReturn(asset);
 
         assertThatThrownBy(() -> orderService.placeBuyOrder(command, asset))
                 .isInstanceOf(ApiException.class)
-                .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.PENDING_ORDER_EXISTS_IN_CATEGORY);
-    }
-
-    @Test
-    void 매수주문시_동일_카테고리에_금일_매수체결된_거래가_있으면_예외가_발생한다() {
-        BuyOrderCommand command = createBuyOrderCommand();
-        AssetDto asset = createUsdAssetDto();
-        given(orderQueryService.existsTodayExecutedBuyOrdersInCategory(command.memberId(), asset.category(), command.requestTime()))
-                .willReturn(true);
-
-        assertThatThrownBy(() -> orderService.placeBuyOrder(command, asset))
-                .isInstanceOf(ApiException.class)
-                .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.EXECUTED_TODAY_ORDER_EXISTS_IN_CATEGORY);
+                .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.BUY_ORDER_LIMIT_PER_CATEGORY);
     }
 
     @Test

@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public final class OrderFixtureUtils {
-    private static final Long MEMBER_ID = 1L;
+    private static final Long USER_ID = 1L;
     private static final Long ORDER_ID = 1000L;
     private static final Long ASSET_ID = 1L;
 
@@ -23,7 +23,7 @@ public final class OrderFixtureUtils {
 
     public static BuyOrderCommand createBuyOrderCommand(AssetDto asset) {
         return BuyOrderCommand.builder()
-                .memberId(MEMBER_ID)
+                .userId(USER_ID)
                 .assetSymbol("NVDA")
                 .orderType(OrderType.LIMIT)
                 .price(BigDecimal.valueOf(200))
@@ -61,7 +61,7 @@ public final class OrderFixtureUtils {
     public static Order createBuyOrder(OrderStatus status) {
         return Order.builder()
                 .id(ORDER_ID)
-                .memberId(MEMBER_ID)
+                .userId(USER_ID)
                 .assetId(ASSET_ID)
                 .side(TradeSide.BUY)
                 .type(OrderType.LIMIT)
@@ -74,7 +74,7 @@ public final class OrderFixtureUtils {
     public static Order createBuyOrder(BuyOrderCommand command) {
         return Order.builder()
                 .id(ORDER_ID)
-                .memberId(command.memberId())
+                .userId(command.userId())
                 .assetId(ASSET_ID)
                 .side(TradeSide.BUY)
                 .type(command.orderType())

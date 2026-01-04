@@ -36,11 +36,11 @@ public class OrderController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "매수 주문 생성 성공")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "현금 부족, 장 마감 등")
     public ResponseEntity<ApiResponse<OrderResponse>> placeBuyOrder(
-            @RequestHeader("X-USER-ID") Long memberId,
+            @RequestHeader("X-USER-ID") Long userId,
             @Valid @RequestBody BuyOrderRequest request
     ) {
         LocalDateTime now = LocalDateTime.now();
-        BuyOrderCommand command = request.toCommand(memberId, now);
+        BuyOrderCommand command = request.toCommand(userId, now);
 
         OrderResponse response = OrderResponse.from(buyOrderUsecase.placeBuyOrder(command));
 
@@ -52,11 +52,11 @@ public class OrderController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "주문 취소 성공")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "취소할 수 없는 거래 (이미 체결됨 등)")
     public ResponseEntity<ApiResponse<OrderResponse>> cancelOrder(
-            @RequestHeader("X-USER-ID") Long memberId,
+            @RequestHeader("X-USER-ID") Long userId,
             @PathVariable @Positive Long orderId
 
     ) {
-        OrderCancelCommand command = new OrderCancelCommand(orderId, memberId);
+        OrderCancelCommand command = new OrderCancelCommand(orderId, userId);
 
         OrderDto order = orderService.cancelOrder(command);
         OrderResponse response = OrderResponse.from(order);

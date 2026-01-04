@@ -17,7 +17,7 @@ public class TradeFillCommandService {
     public TradeFillEntity createTradeFill(FillBuyOrderCommand command, OrderDto order) {
         TradeFillEntity fill = TradeFillEntity.builder()
                 .orderId(command.orderId())
-                .memberId(order.memberId())
+                .userId(order.userId())
                 .assetId(command.assetId())
                 .exchangeRateId(command.exchangeRateId())
                 .realizedPnl(null)

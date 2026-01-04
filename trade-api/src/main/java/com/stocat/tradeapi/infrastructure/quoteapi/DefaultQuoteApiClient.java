@@ -19,19 +19,33 @@ public class DefaultQuoteApiClient implements QuoteApiClient {
     private final AssetsCacheManager assetsCacheManager;
     private final Clock clock;
 
-    @Override
-    public AssetDto fetchAsset(String symbol) {
+    private IndexedAssetsResponse fetchAssets() {
         IndexedAssetsResponse response = assetsCacheManager.getActiveAssets();
 
         LocalDateTime now = LocalDateTime.now(clock);
 
         if (now.getHour() >= ASSET_INIT_HOUR && now.toLocalDate().isAfter(response.date())) {
             assetsCacheManager.refreshActiveAssets();
+            return assetsCacheManager.getActiveAssets();
+        } else {
+            return response;
         }
+    }
 
-        response = assetsCacheManager.getActiveAssets();
-
+    @Override
+    public AssetDto fetchAsset(String symbol) {
+        IndexedAssetsResponse response = fetchAssets();
         AssetDto assetDto = response.assetsBySymbol().get(symbol);
+        if (assetDto == null) {
+            throw new ApiException(TradeErrorCode.ASSET_NOT_FOUND);
+        }
+        return assetDto;
+    }
+
+    @Override
+    public AssetDto fetchAssetById(Long assetId) {
+        IndexedAssetsResponse response = fetchAssets();
+        AssetDto assetDto = response.assetsById().get(assetId);
         if (assetDto == null) {
             throw new ApiException(TradeErrorCode.ASSET_NOT_FOUND);
         }

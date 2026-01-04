@@ -13,9 +13,9 @@ public record IndexedAssetsResponse(
     public static IndexedAssetsResponse from(AssetsResponse response) {
         return new IndexedAssetsResponse(
                 response.date(),
-                response.assets().stream().collect(Collectors.toMap(
+                response.assets().stream().collect(Collectors.toUnmodifiableMap(
                         AssetDto::id, Function.identity())),
-                response.assets().stream().collect(Collectors.toMap(
+                response.assets().stream().collect(Collectors.toUnmodifiableMap(
                         AssetDto::symbol, Function.identity()))
         );
     }

@@ -20,4 +20,8 @@ public enum OrderStatus {
         }
         return false;
     }
+
+    public boolean isCanceled() {
+        return this == CANCELED;
+    }
 }

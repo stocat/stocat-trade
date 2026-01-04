@@ -19,7 +19,7 @@ public class OrderCommandService {
 
     public Order createBuyOrder(BuyOrderCommand command, AssetDto asset) {
         Order order = Order.builder()
-                .memberId(command.memberId())
+                .userId(command.userId())
                 .assetId(asset.id())
                 .side(TradeSide.BUY)
                 .status(OrderStatus.PENDING)

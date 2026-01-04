@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Builder
 public record BuyOrderCommand(
-        Long memberId,
+        Long userId,
         String assetSymbol,
         OrderType orderType,
         BigDecimal quantity,

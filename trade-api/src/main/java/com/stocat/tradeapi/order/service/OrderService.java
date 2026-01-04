@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -28,6 +29,7 @@ public class OrderService {
     private final OrderQueryService orderQueryService;
     private final OrderCommandService orderCommandService;
 
+    private final QuoteApiClient quoteApiClient;
     private final MatchApiClient matchApiClient;
 
     @Transactional
@@ -50,11 +52,8 @@ public class OrderService {
 
         //TODO: 장 마감시간 검증
 
-        if (orderQueryService.existsPendingBuyOrdersInCategory(command.memberId(), asset.category())) {
-            throw new ApiException(TradeErrorCode.PENDING_ORDER_EXISTS_IN_CATEGORY);
-        }
-        if (orderQueryService.existsTodayExecutedBuyOrdersInCategory(command.memberId(), asset.category(), command.requestTime())) {
-            throw new ApiException(TradeErrorCode.EXECUTED_TODAY_ORDER_EXISTS_IN_CATEGORY);
+        if (existsTodayBuyOrderInCategory(command, asset)) {
+            throw new ApiException(TradeErrorCode.BUY_ORDER_LIMIT_PER_CATEGORY);
         }
     }
 
@@ -69,11 +68,23 @@ public class OrderService {
         }
     }
 
+    private boolean existsTodayBuyOrderInCategory(BuyOrderCommand command, AssetDto asset) {
+        List<Order> orders = orderQueryService.findUserBuyOrdersToday(command.userId(), command.requestTime());
+
+        return orders.stream()
+                .filter(previousOrder -> previousOrder.getStatus() != OrderStatus.CANCELED)
+                .anyMatch(previousOrder -> {
+                    AssetDto previousOrderAsset = quoteApiClient.fetchAssetById(previousOrder.getAssetId());
+                    return asset.category() == previousOrderAsset.category();
+                });
+    }
+
+
     @Transactional
     public OrderDto cancelOrder(OrderCancelCommand command) {
         Order order = orderQueryService.findByIdForUpdate(command.orderId());
 
-        if (!order.getMemberId().equals(command.memberId())) {
+        if (!order.getUserId().equals(command.userId())) {
             throw new ApiException(TradeErrorCode.ORDER_PERMISSION_DENIED);
         }
 

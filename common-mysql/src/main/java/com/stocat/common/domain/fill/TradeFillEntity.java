@@ -34,7 +34,7 @@ public class TradeFillEntity {
     private Long orderId;
 
     @Column(nullable = false)
-    private Long memberId;
+    private Long userId;
 
     @Column(nullable = false)
     private Long assetId;
