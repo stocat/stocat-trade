@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public final class OrderFixtureUtils {
     private static final Long MEMBER_ID = 1L;
     private static final Long ORDER_ID = 1000L;
-    private static final Integer ASSET_ID = 1;
+    private static final Long ASSET_ID = 1L;
 
     public static BuyOrderCommand createBuyOrderCommand() {
         return createBuyOrderCommand(createUsdAssetDto());

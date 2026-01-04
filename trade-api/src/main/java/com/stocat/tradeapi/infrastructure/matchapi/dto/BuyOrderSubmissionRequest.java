@@ -12,7 +12,7 @@ public record BuyOrderSubmissionRequest(
         Long orderId,
         Long memberId,
         OrderType orderType,
-        Integer assetId,
+        Long assetId,
         BigDecimal quantity,
         BigDecimal price,
         OrderTif tif

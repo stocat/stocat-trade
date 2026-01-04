@@ -39,7 +39,7 @@ public class DefaultQuoteApiClient implements QuoteApiClient {
     }
 
     @Override
-    public Integer fetchCashAssetId(AssetsCategory category) {
+    public Long fetchCashAssetId(AssetsCategory category) {
         return fetchAsset(category.name()).id();
     }
 }

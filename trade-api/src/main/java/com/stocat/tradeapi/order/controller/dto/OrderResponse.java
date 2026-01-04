@@ -13,7 +13,7 @@ public record OrderResponse(
         @Schema(description = "주문 고유 ID", example = "1001")
         Long id,
         @Schema(description = "종목 고유 ID", example = "1")
-        Integer assetId,
+        Long assetId,
         @Schema(description = "매수/매도 구분", example = "BUY | SELL")
         TradeSide side,
         @Schema(description = "주문 상태", example = "PENDING | FILLED | CANCELED | REJECTED")

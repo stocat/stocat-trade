@@ -5,5 +5,5 @@ import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 
 public interface QuoteApiClient {
     AssetDto fetchAsset(String symbol);
-    Integer fetchCashAssetId(AssetsCategory category);
+    Long fetchCashAssetId(AssetsCategory category);
 }

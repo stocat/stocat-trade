@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public record IndexedAssetsResponse(
         LocalDate date,
-        Map<Integer, AssetDto> assetsById,
+        Map<Long, AssetDto> assetsById,
         Map<String, AssetDto> assetsBySymbol
 ) {
     public static IndexedAssetsResponse from(AssetsResponse response) {

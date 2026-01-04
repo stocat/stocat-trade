@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public record OrderDto(
         Long id,
         Long memberId,
-        Integer assetId,
+        Long assetId,
         TradeSide side,
         OrderType type,
         OrderStatus status,

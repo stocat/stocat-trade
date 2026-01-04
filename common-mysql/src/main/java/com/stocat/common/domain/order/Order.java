@@ -38,7 +38,7 @@ public class Order extends BaseEntity {
     private Long memberId;
 
     @Column(nullable = false)
-    private Integer assetId;
+    private Long assetId;
 
 //    @Column(nullable = false)
 //    private AssetsCategory category;
