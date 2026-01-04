@@ -12,7 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.stocat.tradeapi.order.OrderFixtureUtils.createAssetDto;
+import static com.stocat.tradeapi.order.OrderFixtureUtils.createUsdAssetDto;
 import static com.stocat.tradeapi.order.OrderFixtureUtils.createBuyOrder;
 import static com.stocat.tradeapi.order.OrderFixtureUtils.createBuyOrderCommand;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +36,7 @@ public class OrderCommandServiceTest {
     @Test
     void 매수주문_생성시_주문초기상태는_CREATED이다() {
         BuyOrderCommand command = createBuyOrderCommand();
-        AssetDto asset = createAssetDto();
+        AssetDto asset = createUsdAssetDto();
         given(orderRepository.save(any(Order.class)))
                 .will(invocation -> invocation.getArgument(0));
 

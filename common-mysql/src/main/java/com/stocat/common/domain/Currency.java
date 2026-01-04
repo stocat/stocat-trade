@@ -8,11 +8,11 @@ public enum Currency {
     BTC,
     USDT;
 
-    public static Currency fromMarket(String market) {
-        String base = market.split("-")[0];
-        return Arrays.stream(values())
-                .filter(value -> value.name().equalsIgnoreCase(base))
-                .findFirst()
-                .orElse(KRW);
+    public AssetsCategory toCashCategory() {
+        return switch (this) {
+            case KRW -> AssetsCategory.KRW;
+            case USD -> AssetsCategory.USD;
+            default -> throw new IllegalArgumentException();
+        };
     }
 }

@@ -1,7 +1,5 @@
 package com.stocat.tradeapi.order.service;
 
-import com.stocat.common.domain.AssetsCategory;
-import com.stocat.common.domain.Currency;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.domain.order.OrderType;
@@ -9,7 +7,6 @@ import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.infrastructure.matchapi.MatchApiClient;
 import com.stocat.tradeapi.infrastructure.matchapi.dto.BuyOrderSubmissionRequest;
-import com.stocat.tradeapi.infrastructure.quoteapi.QuoteApiClient;
 import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.OrderFixtureUtils;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
@@ -24,9 +21,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import static com.stocat.tradeapi.order.OrderFixtureUtils.createAssetDto;
 import static com.stocat.tradeapi.order.OrderFixtureUtils.createBuyOrder;
 import static com.stocat.tradeapi.order.OrderFixtureUtils.createBuyOrderCommand;
+import static com.stocat.tradeapi.order.OrderFixtureUtils.createCryptoAssetDto;
+import static com.stocat.tradeapi.order.OrderFixtureUtils.createUsdAssetDto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -41,24 +39,22 @@ public class OrderServiceTest {
     private OrderCommandService orderCommandService;
     @Mock
     private MatchApiClient matchApiClient;
-    @Mock
-    private QuoteApiClient quoteApiClient;
 
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderService(orderQueryService, orderCommandService, matchApiClient, quoteApiClient);
+        orderService = new OrderService(orderQueryService, orderCommandService, matchApiClient);
     }
 
     @Test
     void 매수주문시_주문생성은_OrderCommandService에_위임한다() {
         BuyOrderCommand command = createBuyOrderCommand();
-        AssetDto asset = createAssetDto();
+        AssetDto asset = createUsdAssetDto();
         Order order = createBuyOrder(command);
         given(orderCommandService.createBuyOrder(command, asset)).willReturn(order);
 
-        OrderDto orderDto = orderService.placeBuyOrder(command);
+        OrderDto orderDto = orderService.placeBuyOrder(command, asset);
 
         verify(orderCommandService, times(1)).createBuyOrder(command, asset);
         assertThat(orderDto.id()).isEqualTo(order.getId());
@@ -67,15 +63,14 @@ public class OrderServiceTest {
     @Test
     void 매수주문시_주문을_체결엔진에_제출한다() {
         BuyOrderCommand command = createBuyOrderCommand();
-        AssetDto asset = createAssetDto();
+        AssetDto asset = createUsdAssetDto();
         Order order = createBuyOrder(command);
         given(orderCommandService.createBuyOrder(command, asset)).willReturn(order);
 
-        orderService.placeBuyOrder(command);
+        orderService.placeBuyOrder(command, asset);
 
         verify(matchApiClient, times(1)).submitBuyOrder(BuyOrderSubmissionRequest.from(order));
     }
-
 
 
     @Test
@@ -83,8 +78,9 @@ public class OrderServiceTest {
         BuyOrderCommand command = BuyOrderCommand.builder().memberId(1L).orderType(OrderType.LIMIT).assetSymbol("BTC/KRW").price(BigDecimal.valueOf(200)).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
                 .quantity(BigDecimal.valueOf(0.12345))
                 .build();
+        AssetDto asset = createCryptoAssetDto();
 
-        assertThatThrownBy(() -> orderService.placeBuyOrder(command))
+        assertThatThrownBy(() -> orderService.placeBuyOrder(command, asset))
                 .isInstanceOf(ApiException.class)
                 .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.INVALID_ORDER_QUANTITY);
     }
@@ -94,31 +90,22 @@ public class OrderServiceTest {
         BuyOrderCommand command = BuyOrderCommand.builder().memberId(1L).orderType(OrderType.LIMIT).assetSymbol("NVDA").price(BigDecimal.valueOf(200)).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
                 .quantity(BigDecimal.valueOf(0.1))
                 .build();
+        AssetDto asset = createUsdAssetDto();
 
-        assertThatThrownBy(() -> orderService.placeBuyOrder(command))
+
+        assertThatThrownBy(() -> orderService.placeBuyOrder(command, asset))
                 .isInstanceOf(ApiException.class)
                 .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.INVALID_ORDER_QUANTITY);
     }
 
     @Test
-    void 매수주문시_종목이_데일리픽이_아니면_예외가_발생한다() {
-        AssetDto asset = AssetDto.builder().id(1).symbol("NVDA").category(AssetsCategory.USD).currency(Currency.USD).isActive(true).koName("엔비디아").usName("NVIDIA")
-                .isDaily(false).build();
-        BuyOrderCommand command = createBuyOrderCommand(asset);
-
-        assertThatThrownBy(() -> orderService.placeBuyOrder(command))
-                .isInstanceOf(ApiException.class)
-                .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.NOT_DAILY_PICK_ASSET);
-    }
-
-    @Test
     void 매수주문시_동일_카테고리에_체결대기중인_종목이_있으면_예외가_발생한다() {
         BuyOrderCommand command = createBuyOrderCommand();
-        AssetDto asset = createAssetDto();
+        AssetDto asset = createUsdAssetDto();
         given(orderQueryService.existsPendingBuyOrdersInCategory(command.memberId(), asset.category()))
                 .willReturn(true);
 
-        assertThatThrownBy(() -> orderService.placeBuyOrder(command))
+        assertThatThrownBy(() -> orderService.placeBuyOrder(command, asset))
                 .isInstanceOf(ApiException.class)
                 .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.PENDING_ORDER_EXISTS_IN_CATEGORY);
     }
@@ -126,11 +113,11 @@ public class OrderServiceTest {
     @Test
     void 매수주문시_동일_카테고리에_금일_매수체결된_거래가_있으면_예외가_발생한다() {
         BuyOrderCommand command = createBuyOrderCommand();
-        AssetDto asset = createAssetDto();
+        AssetDto asset = createUsdAssetDto();
         given(orderQueryService.existsTodayExecutedBuyOrdersInCategory(command.memberId(), asset.category(), command.requestTime()))
                 .willReturn(true);
 
-        assertThatThrownBy(() -> orderService.placeBuyOrder(command))
+        assertThatThrownBy(() -> orderService.placeBuyOrder(command, asset))
                 .isInstanceOf(ApiException.class)
                 .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.EXECUTED_TODAY_ORDER_EXISTS_IN_CATEGORY);
     }

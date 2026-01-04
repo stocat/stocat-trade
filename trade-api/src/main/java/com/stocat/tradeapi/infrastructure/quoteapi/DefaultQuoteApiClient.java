@@ -1,5 +1,6 @@
 package com.stocat.tradeapi.infrastructure.quoteapi;
 
+import com.stocat.common.domain.AssetsCategory;
 import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
@@ -35,5 +36,10 @@ public class DefaultQuoteApiClient implements QuoteApiClient {
             throw new ApiException(TradeErrorCode.ASSET_NOT_FOUND);
         }
         return assetDto;
+    }
+
+    @Override
+    public Integer fetchCashAssetId(AssetsCategory category) {
+        return fetchAsset(category.name()).id();
     }
 }

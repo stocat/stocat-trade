@@ -18,7 +18,7 @@ public final class OrderFixtureUtils {
     private static final Integer ASSET_ID = 1;
 
     public static BuyOrderCommand createBuyOrderCommand() {
-        return createBuyOrderCommand(createAssetDto());
+        return createBuyOrderCommand(createUsdAssetDto());
     }
 
     public static BuyOrderCommand createBuyOrderCommand(AssetDto asset) {
@@ -32,7 +32,7 @@ public final class OrderFixtureUtils {
                 .build();
     }
 
-    public static AssetDto createAssetDto() {
+    public static AssetDto createUsdAssetDto() {
         return AssetDto.builder()
                 .id(ASSET_ID)
                 .symbol("NVDA")
@@ -42,6 +42,19 @@ public final class OrderFixtureUtils {
                 .isDaily(true)
                 .koName("엔비디아")
                 .usName("NVIDIA")
+                .build();
+    }
+
+    public static AssetDto createCryptoAssetDto() {
+        return AssetDto.builder()
+                .id(ASSET_ID + 1)
+                .symbol("BTC/KRW")
+                .category(AssetsCategory.CRYPTO)
+                .currency(Currency.KRW)
+                .isActive(true)
+                .isDaily(true)
+                .koName("비트코인")
+                .usName("BTC")
                 .build();
     }
 

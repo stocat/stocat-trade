@@ -5,6 +5,7 @@ import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.exception.TradeErrorCode;
+import com.stocat.tradeapi.fill.dto.FillBuyOrderCommand;
 import com.stocat.tradeapi.infrastructure.matchapi.MatchApiClient;
 import com.stocat.tradeapi.infrastructure.matchapi.dto.BuyOrderSubmissionRequest;
 import com.stocat.tradeapi.infrastructure.quoteapi.QuoteApiClient;
@@ -28,19 +29,15 @@ public class OrderService {
     private final OrderCommandService orderCommandService;
 
     private final MatchApiClient matchApiClient;
-    private final QuoteApiClient quoteApiClient;
 
     @Transactional
-    public OrderDto placeBuyOrder(BuyOrderCommand command) {
-        AssetDto asset = quoteApiClient.fetchAsset(command.assetSymbol());
+    public OrderDto placeBuyOrder(BuyOrderCommand command, AssetDto asset) {
         validateBuyOrder(command, asset);
 
         Order order = orderCommandService.createBuyOrder(command, asset);
         OrderDto dto = OrderDto.from(order);
 
         matchApiClient.submitBuyOrder(BuyOrderSubmissionRequest.from(order));
-
-        // TODO: 사용 가능 포인트(현금) 감소 로직 추가
 
         return dto;
     }
@@ -49,10 +46,6 @@ public class OrderService {
     private void validateBuyOrder(BuyOrderCommand command, AssetDto asset) {
         if (!isValidBuyOrderQuantity(command, asset)) {
             throw new ApiException(TradeErrorCode.INVALID_ORDER_QUANTITY);
-        }
-
-        if (!asset.isDaily()) {
-            throw new ApiException(TradeErrorCode.NOT_DAILY_PICK_ASSET);
         }
 
         //TODO: 장 마감시간 검증
@@ -89,6 +82,17 @@ public class OrderService {
         order = orderCommandService.updateOrderStatus(order, OrderStatus.CANCELED);
         return OrderDto.from(order);
     }
+
+    @Transactional
+    public OrderDto fillBuyOrder(FillBuyOrderCommand command) {
+        Order order = orderQueryService.findByIdForUpdate(command.orderId());
+        // TODO: 부분 체결이 있다면, 부분체결 상황을 알기 위한 업데이트 추가
+        // TODO: 부분 체결을 위한 추가 테이블 혹은 필드가 있다면 추가
+        orderCommandService.updateOrderStatus(order, OrderStatus.FILLED);
+
+        return OrderDto.from(order);
+    }
+
 
     private void validateSellOrder(OrderDto orderDto) {
         // TODO: 구현
