@@ -39,14 +39,11 @@ public class TradeFillEntity {
     @Column(nullable = false)
     private Long assetId;
 
-    // TODO: ERD 수정
-    @Column(nullable = false)
-    private Long exchangeRateId;
-
     @Column(nullable = true)
     private BigDecimal realizedPnl;
 
-    // TODO: 상세정보
+    @Column(nullable = false, length = 1000)
+    private String details;
 
     @Column(nullable = false)
     private TradeSide side;
