@@ -1,8 +1,6 @@
 package com.stocat.common.domain.order;
 
-import com.stocat.common.domain.AssetsCategory;
 import com.stocat.common.domain.BaseEntity;
-import com.stocat.common.domain.Currency;
 import com.stocat.common.domain.TradeSide;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,7 +10,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,17 +32,17 @@ public class Order extends BaseEntity {
     private Long id;
 
     @Column(nullable = false)
-    private Long memberId;
+    private Long userId;
 
     @Column(nullable = false)
-    private Integer assetId;
+    private Long assetId;
 
-    @Column(nullable = false)
-    private AssetsCategory category;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 3)
-    private Currency currency;
+//    @Column(nullable = false)
+//    private AssetsCategory category;
+//
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false, length = 3)
+//    private Currency currency;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

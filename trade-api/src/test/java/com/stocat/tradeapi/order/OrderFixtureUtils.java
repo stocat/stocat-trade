@@ -13,26 +13,26 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public final class OrderFixtureUtils {
-    private static final Long MEMBER_ID = 1L;
+    private static final Long USER_ID = 1L;
     private static final Long ORDER_ID = 1000L;
-    private static final Integer ASSET_ID = 1;
+    private static final Long ASSET_ID = 1L;
 
     public static BuyOrderCommand createBuyOrderCommand() {
-        return createBuyOrderCommand(createAssetDto());
+        return createBuyOrderCommand(createUsdAssetDto());
     }
 
     public static BuyOrderCommand createBuyOrderCommand(AssetDto asset) {
         return BuyOrderCommand.builder()
-                .memberId(MEMBER_ID)
+                .userId(USER_ID)
+                .assetSymbol("NVDA")
                 .orderType(OrderType.LIMIT)
-                .asset(asset)
                 .price(BigDecimal.valueOf(200))
                 .quantity(BigDecimal.valueOf(100))
                 .requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
                 .build();
     }
 
-    public static AssetDto createAssetDto() {
+    public static AssetDto createUsdAssetDto() {
         return AssetDto.builder()
                 .id(ASSET_ID)
                 .symbol("NVDA")
@@ -45,13 +45,24 @@ public final class OrderFixtureUtils {
                 .build();
     }
 
+    public static AssetDto createCryptoAssetDto() {
+        return AssetDto.builder()
+                .id(ASSET_ID + 1)
+                .symbol("BTC/KRW")
+                .category(AssetsCategory.CRYPTO)
+                .currency(Currency.KRW)
+                .isActive(true)
+                .isDaily(true)
+                .koName("비트코인")
+                .usName("BTC")
+                .build();
+    }
+
     public static Order createBuyOrder(OrderStatus status) {
         return Order.builder()
                 .id(ORDER_ID)
-                .memberId(MEMBER_ID)
+                .userId(USER_ID)
                 .assetId(ASSET_ID)
-                .category(AssetsCategory.USD)
-                .currency(Currency.USD)
                 .side(TradeSide.BUY)
                 .type(OrderType.LIMIT)
                 .status(status)
@@ -63,10 +74,8 @@ public final class OrderFixtureUtils {
     public static Order createBuyOrder(BuyOrderCommand command) {
         return Order.builder()
                 .id(ORDER_ID)
-                .memberId(command.memberId())
-                .assetId(command.asset().id())
-                .category(command.asset().category())
-                .currency(command.asset().currency())
+                .userId(command.userId())
+                .assetId(ASSET_ID)
                 .side(TradeSide.BUY)
                 .type(command.orderType())
                 .status(OrderStatus.PENDING)

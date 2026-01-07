@@ -6,7 +6,7 @@ import lombok.Builder;
 
 @Builder
 public record AssetDto(
-        Integer id,
+        Long id,
         String symbol,
         AssetsCategory category,
         Currency currency,

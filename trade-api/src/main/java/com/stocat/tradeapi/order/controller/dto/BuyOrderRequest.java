@@ -40,13 +40,13 @@ public record BuyOrderRequest(
         return false;
     }
 
-    public BuyOrderCommand toCommand(Long memberId, LocalDateTime now) {
+    public BuyOrderCommand toCommand(Long userId, LocalDateTime now) {
         OrderType orderType = OrderType.valueOf(this.orderType);
 
         return BuyOrderCommand.builder()
-                .memberId(memberId)
+                .userId(userId)
                 .orderType(orderType)
-                .asset(AssetDto.builder().symbol(symbol).build())
+                .assetSymbol(symbol)
                 .quantity(quantity)
                 .price(price)
                 .requestTime(now)

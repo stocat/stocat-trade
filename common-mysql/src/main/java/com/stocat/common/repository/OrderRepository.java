@@ -1,6 +1,5 @@
 package com.stocat.common.repository;
 
-import com.stocat.common.domain.AssetsCategory;
 import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
@@ -19,9 +18,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT o FROM Order o WHERE o.id = :id")
     Optional<Order> findByIdForUpdate(@Param("id") Long id);
 
-    boolean existsByMemberIdAndSideAndCategoryAndStatus(
-            Long memberId, TradeSide side, AssetsCategory category, OrderStatus status);
-
-    boolean existsByMemberIdAndSideAndCategoryAndCreatedAtBetween(
-            Long memberId, TradeSide side, AssetsCategory category, LocalDateTime start, LocalDateTime end);
+    List<Order> findByUserIdAndSideAndCreatedAtBetween(
+            Long userId, TradeSide side, LocalDateTime start, LocalDateTime end);
 }
