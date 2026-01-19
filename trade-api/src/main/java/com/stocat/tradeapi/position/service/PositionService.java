@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -23,7 +24,9 @@ public class PositionService {
         PositionEntity userPosition =
                 positionQueryService.getPositionById(command.positionId());
 
-        // TODO: 유저의 아이디 일치 여부 검증
+        if (!Objects.equals(userPosition.getUserId(), command.userId())) {
+            throw new ApiException(PositionErrorCode.NOT_USER_POSITION);
+        }
 
         return PositionDto.from(userPosition);
     }
