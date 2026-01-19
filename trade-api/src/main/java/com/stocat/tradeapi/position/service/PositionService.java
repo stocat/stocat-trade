@@ -6,13 +6,13 @@ import com.stocat.tradeapi.position.exception.PositionErrorCode;
 import com.stocat.tradeapi.position.service.dto.PositionDto;
 import com.stocat.tradeapi.position.service.dto.command.GetPositionCommand;
 import com.stocat.tradeapi.position.service.dto.command.PositionUpsertCommand;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +43,7 @@ public class PositionService {
                 .toList();
     }
 
+    @Transactional
     public void updateUserPosition(PositionUpsertCommand command) {
         Optional<PositionEntity> entity = positionQueryService.getUserPosition(command.assetId(), command.userId());
 
@@ -75,7 +76,6 @@ public class PositionService {
         if (quantityDelta.signum() == 0) {
             throw new ApiException(PositionErrorCode.INVALID_POSITION_QUANTITY);
         }
-
 
         if (quantityDelta.signum() > 0) {
             entity.add(quantityDelta, additionalAvgEntryPrice);
