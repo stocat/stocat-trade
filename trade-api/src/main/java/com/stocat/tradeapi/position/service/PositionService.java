@@ -45,7 +45,7 @@ public class PositionService {
 
     @Transactional
     public void updateUserPosition(PositionUpsertCommand command) {
-        Optional<PositionEntity> entity = positionQueryService.getUserPosition(command.assetId(), command.userId());
+        Optional<PositionEntity> entity = positionQueryService.getUserPositionForUpdate(command.assetId(), command.userId());
 
         if (entity.isEmpty()) {
             createNewPosition(command);

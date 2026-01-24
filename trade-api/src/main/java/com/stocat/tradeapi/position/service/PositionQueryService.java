@@ -34,6 +34,11 @@ public class PositionQueryService {
     }
 
     @Transactional
+    public Optional<PositionEntity> getUserPositionForUpdate(Long assetId, Long userId) {
+        return positionRepository.findByAssetIdAndUserIdForUpdate(assetId, userId);
+    }
+
+    @Transactional
     public PositionEntity saveUserPosition(PositionEntity entity) {
         return positionRepository.save(entity);
     }
