@@ -1,12 +1,18 @@
 package com.stocat.tradeapi.position.service;
 
 import com.stocat.common.domain.position.PositionEntity;
+import com.stocat.common.exception.ApiException;
+import com.stocat.tradeapi.position.exception.PositionErrorCode;
 import com.stocat.tradeapi.position.service.dto.PositionDto;
 import com.stocat.tradeapi.position.service.dto.command.GetPositionCommand;
+import com.stocat.tradeapi.position.service.dto.command.PositionUpsertCommand;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -16,7 +22,11 @@ public class PositionService {
 
     public PositionDto getPositionById(GetPositionCommand command) {
         PositionEntity userPosition =
-                positionQueryService.getUserPosition(command.positionId(), command.userId());
+                positionQueryService.getPositionById(command.positionId());
+
+        if (!Objects.equals(userPosition.getUserId(), command.userId())) {
+            throw new ApiException(PositionErrorCode.NOT_USER_POSITION);
+        }
 
         return PositionDto.from(userPosition);
     }
@@ -31,5 +41,47 @@ public class PositionService {
         return userPositions.stream()
                 .map(PositionDto::from)
                 .toList();
+    }
+
+    @Transactional
+    public void updateUserPosition(PositionUpsertCommand command) {
+        Optional<PositionEntity> entity = positionQueryService.getUserPosition(command.assetId(), command.userId());
+
+        if (entity.isEmpty()) {
+            createNewPosition(command);
+            return;
+        }
+
+        PositionEntity existingPosition = entity.get();
+        applyQuantityChange(existingPosition, command.quantity(), command.avgEntryPrice());
+        positionQueryService.saveUserPosition(existingPosition);
+    }
+
+    private void createNewPosition(PositionUpsertCommand command) {
+        if (command.quantity() == null || command.quantity().signum() <= 0) {
+            throw new ApiException(PositionErrorCode.POSITION_NOT_FOUND_FOR_SELL);
+        }
+        PositionEntity newEntity = PositionEntity.create(
+                command.userId(),
+                command.assetId(),
+                command.quantity(),
+                command.avgEntryPrice()
+        );
+        positionQueryService.saveUserPosition(newEntity);
+    }
+
+    private void applyQuantityChange(PositionEntity entity,
+                                     BigDecimal quantityDelta,
+                                     BigDecimal additionalAvgEntryPrice) {
+        if (quantityDelta.signum() == 0) {
+            throw new ApiException(PositionErrorCode.INVALID_POSITION_QUANTITY);
+        }
+
+        if (quantityDelta.signum() > 0) {
+            entity.add(quantityDelta, additionalAvgEntryPrice);
+            return;
+        }
+
+        entity.subtract(quantityDelta.abs());
     }
 }
