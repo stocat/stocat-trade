@@ -32,6 +32,9 @@ public class BuyOrderUsecase {
     }
 
     private void validateAsset(AssetDto asset) {
+//        if (asset == null) {
+//            throw new ApiException(TradeErrorCode.ASSET_NOT_FOUND);
+//        }
         if (!asset.isDaily()) {
             throw new ApiException(TradeErrorCode.NOT_DAILY_PICK_ASSET);
         }
