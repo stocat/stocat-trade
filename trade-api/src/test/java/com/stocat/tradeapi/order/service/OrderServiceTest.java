@@ -2,6 +2,7 @@ package com.stocat.tradeapi.order.service;
 
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
+import com.stocat.common.domain.order.OrderTif;
 import com.stocat.common.domain.order.OrderType;
 import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.exception.TradeErrorCode;
@@ -79,7 +80,7 @@ public class OrderServiceTest {
 
     @Test
     void 코인매수주문시_수량이_소수점4자리를_초과하면_예외가_발생한다() {
-        BuyOrderCommand command = BuyOrderCommand.builder().userId(1L).orderType(OrderType.LIMIT).assetSymbol("BTC/KRW").price(BigDecimal.valueOf(200)).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
+        BuyOrderCommand command = BuyOrderCommand.builder().userId(1L).orderType(OrderType.LIMIT).assetSymbol("BTC/KRW").price(BigDecimal.valueOf(200)).tif(OrderTif.GTC).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
                 .quantity(BigDecimal.valueOf(0.12345))
                 .build();
         AssetDto asset = createCryptoAssetDto();
@@ -91,7 +92,7 @@ public class OrderServiceTest {
 
     @Test
     void 주식매수주문시_수량이_정수가아니면_예외가_발생한다() {
-        BuyOrderCommand command = BuyOrderCommand.builder().userId(1L).orderType(OrderType.LIMIT).assetSymbol("NVDA").price(BigDecimal.valueOf(200)).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
+        BuyOrderCommand command = BuyOrderCommand.builder().userId(1L).orderType(OrderType.LIMIT).assetSymbol("NVDA").price(BigDecimal.valueOf(200)).tif(OrderTif.GTC).requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
                 .quantity(BigDecimal.valueOf(0.1))
                 .build();
         AssetDto asset = createUsdAssetDto();

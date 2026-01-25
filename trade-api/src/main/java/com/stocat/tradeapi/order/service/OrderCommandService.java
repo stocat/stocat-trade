@@ -22,9 +22,11 @@ public class OrderCommandService {
                 .userId(command.userId())
                 .assetId(asset.id())
                 .side(TradeSide.BUY)
+                .type(command.orderType())
                 .status(OrderStatus.PENDING)
                 .quantity(command.quantity())
                 .price(command.price())
+                .tif(command.tif())
                 .build();
 
         return orderRepository.save(order);
