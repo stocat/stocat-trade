@@ -18,6 +18,20 @@ public enum TradeErrorCode implements ErrorCode {
     QUOTE_API_ERROR(ErrorDomain.TRADE_API.offset() + 51, "Quote Api 오류로 주문을 처리하지 못했습니다."),
 
     ORDER_NOT_FOUND(ErrorDomain.TRADE_API.offset() + 90, "존재하지 않는 주문입니다."),
+
+    // 포지션 도메인 (1000~1999)
+    NOT_FOUND_USER_POSITION(ErrorDomain.TRADE_API.offset() + 1000, "유저가 소유한 포지션을 찾을 수 없습니다"),
+    INVALID_POSITION_QUANTITY(ErrorDomain.TRADE_API.offset() + 1001, "거래 수량은 0일 수 없습니다"),
+    POSITION_NOT_FOUND_FOR_SELL(ErrorDomain.TRADE_API.offset() + 1002, "보유 포지션 없이 매도할 수 없습니다"),
+    INSUFFICIENT_POSITION_QUANTITY(ErrorDomain.TRADE_API.offset() + 1003, "보유 수량보다 많이 매도할 수 없습니다"),
+    NOT_USER_POSITION(ErrorDomain.TRADE_API.offset() + 1004, "유저가 소유한 포지션이 아닙니다."),
+
+    // 현금 도메인 (2000~2999)
+    INVALID_CASH_AMOUNT(ErrorDomain.TRADE_API.offset() + 2000, "현금 금액이 올바르지 않습니다."),
+    CASH_BALANCE_NOT_FOUND(ErrorDomain.TRADE_API.offset() + 2001, "현금 잔액 정보를 찾을 수 없습니다."),
+    INSUFFICIENT_CASH_BALANCE(ErrorDomain.TRADE_API.offset() + 2002, "가용 현금이 부족합니다."),
+    CASH_HOLDING_NOT_FOUND(ErrorDomain.TRADE_API.offset() + 2003, "해당 주문과 연결된 현금 홀딩이 없습니다."),
+    CASH_HOLDING_ALREADY_FINALIZED(ErrorDomain.TRADE_API.offset() + 2004, "이미 처리된 현금 홀딩입니다."),
     ;
 
     private final int code;

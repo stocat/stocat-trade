@@ -17,7 +17,6 @@ import com.stocat.common.exception.ApiException;
 import com.stocat.common.repository.CashBalanceRepository;
 import com.stocat.common.repository.CashHoldingRepository;
 import com.stocat.common.repository.OrderRepository;
-import com.stocat.tradeapi.cash.exception.CashErrorCode;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.infrastructure.matchapi.MatchApiClient;
 import com.stocat.tradeapi.infrastructure.matchapi.dto.BuyOrderSubmissionResponse;
@@ -111,7 +110,7 @@ class BuyOrderUsecaseTest {
 
         assertThatThrownBy(() -> buyOrderUsecase.placeBuyOrder(command))
                 .isInstanceOf(ApiException.class)
-                .hasFieldOrPropertyWithValue("errorCode", CashErrorCode.INSUFFICIENT_CASH_BALANCE);
+                .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.INSUFFICIENT_CASH_BALANCE);
 
         assertThat(orderRepository.count()).isZero();
         assertThat(cashHoldingRepository.count()).isZero();

@@ -12,7 +12,7 @@ import com.stocat.common.domain.cash.CashHoldingStatus;
 import com.stocat.common.exception.ApiException;
 import com.stocat.common.repository.CashBalanceRepository;
 import com.stocat.common.repository.CashHoldingRepository;
-import com.stocat.tradeapi.cash.exception.CashErrorCode;
+import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.cash.service.dto.command.CreateCashHoldingCommand;
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -85,7 +85,7 @@ class CashServiceTest {
 
         assertThatThrownBy(() -> cashService.createCashHolding(command))
                 .isInstanceOf(ApiException.class)
-                .hasMessageContaining(CashErrorCode.INSUFFICIENT_CASH_BALANCE.message());
+                .hasMessageContaining(TradeErrorCode.INSUFFICIENT_CASH_BALANCE.message());
     }
 
     @Test
@@ -114,7 +114,7 @@ class CashServiceTest {
 
         assertThatThrownBy(() -> cashService.createCashHolding(command))
                 .isInstanceOf(ApiException.class)
-                .hasMessageContaining(CashErrorCode.CASH_BALANCE_NOT_FOUND.message());
+                .hasMessageContaining(TradeErrorCode.CASH_BALANCE_NOT_FOUND.message());
     }
 
     @Test
@@ -128,7 +128,7 @@ class CashServiceTest {
 
         assertThatThrownBy(() -> cashService.createCashHolding(zeroCommand))
                 .isInstanceOf(ApiException.class)
-                .hasMessageContaining(CashErrorCode.INVALID_CASH_AMOUNT.message());
+                .hasMessageContaining(TradeErrorCode.INVALID_CASH_AMOUNT.message());
     }
 
     @Test
@@ -146,7 +146,7 @@ class CashServiceTest {
 
         assertThatThrownBy(() -> cashService.createCashHolding(command))
                 .isInstanceOf(ApiException.class)
-                .hasMessageContaining(CashErrorCode.INSUFFICIENT_CASH_BALANCE.message());
+                .hasMessageContaining(TradeErrorCode.INSUFFICIENT_CASH_BALANCE.message());
     }
 
     @Test
@@ -155,7 +155,7 @@ class CashServiceTest {
 
         assertThatThrownBy(() -> cashService.consumeHoldingAndWithdraw(1L))
                 .isInstanceOf(ApiException.class)
-                .hasMessageContaining(CashErrorCode.CASH_HOLDING_NOT_FOUND.message());
+                .hasMessageContaining(TradeErrorCode.CASH_HOLDING_NOT_FOUND.message());
     }
 
     @Test
@@ -173,7 +173,7 @@ class CashServiceTest {
 
         assertThatThrownBy(() -> cashService.consumeHoldingAndWithdraw(1L))
                 .isInstanceOf(ApiException.class)
-                .hasMessageContaining(CashErrorCode.INSUFFICIENT_CASH_BALANCE.message());
+                .hasMessageContaining(TradeErrorCode.INSUFFICIENT_CASH_BALANCE.message());
     }
 
     @Test
@@ -184,6 +184,6 @@ class CashServiceTest {
 
         assertThatThrownBy(() -> cashService.consumeHoldingAndWithdraw(1L))
                 .isInstanceOf(ApiException.class)
-                .hasMessageContaining(CashErrorCode.CASH_HOLDING_ALREADY_FINALIZED.message());
+                .hasMessageContaining(TradeErrorCode.CASH_HOLDING_ALREADY_FINALIZED.message());
     }
 }
