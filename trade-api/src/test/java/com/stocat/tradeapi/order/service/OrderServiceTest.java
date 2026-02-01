@@ -36,6 +36,7 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceTest {
+    private static final Long CASH_HOLDING_ID = 999L;
     @Mock
     private OrderQueryService orderQueryService;
     @Mock
@@ -57,11 +58,11 @@ public class OrderServiceTest {
         BuyOrderCommand command = createBuyOrderCommand();
         AssetDto asset = createUsdAssetDto();
         Order order = createBuyOrder(command);
-        given(orderCommandService.createBuyOrder(command, asset)).willReturn(order);
+        given(orderCommandService.createBuyOrder(command, asset, CASH_HOLDING_ID)).willReturn(order);
 
-        OrderDto orderDto = orderService.placeBuyOrder(command, asset);
+        OrderDto orderDto = orderService.placeBuyOrder(command, asset, CASH_HOLDING_ID);
 
-        verify(orderCommandService, times(1)).createBuyOrder(command, asset);
+        verify(orderCommandService, times(1)).createBuyOrder(command, asset, CASH_HOLDING_ID);
         assertThat(orderDto.id()).isEqualTo(order.getId());
     }
 
@@ -70,9 +71,9 @@ public class OrderServiceTest {
         BuyOrderCommand command = createBuyOrderCommand();
         AssetDto asset = createUsdAssetDto();
         Order order = createBuyOrder(command);
-        given(orderCommandService.createBuyOrder(command, asset)).willReturn(order);
+        given(orderCommandService.createBuyOrder(command, asset, CASH_HOLDING_ID)).willReturn(order);
 
-        orderService.placeBuyOrder(command, asset);
+        orderService.placeBuyOrder(command, asset, CASH_HOLDING_ID);
 
         verify(matchApiClient, times(1)).submitBuyOrder(BuyOrderSubmissionRequest.from(order));
     }
@@ -85,7 +86,7 @@ public class OrderServiceTest {
                 .build();
         AssetDto asset = createCryptoAssetDto();
 
-        assertThatThrownBy(() -> orderService.placeBuyOrder(command, asset))
+        assertThatThrownBy(() -> orderService.placeBuyOrder(command, asset, CASH_HOLDING_ID))
                 .isInstanceOf(ApiException.class)
                 .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.INVALID_ORDER_QUANTITY);
     }
@@ -98,7 +99,7 @@ public class OrderServiceTest {
         AssetDto asset = createUsdAssetDto();
 
 
-        assertThatThrownBy(() -> orderService.placeBuyOrder(command, asset))
+        assertThatThrownBy(() -> orderService.placeBuyOrder(command, asset, CASH_HOLDING_ID))
                 .isInstanceOf(ApiException.class)
                 .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.INVALID_ORDER_QUANTITY);
     }
@@ -113,7 +114,7 @@ public class OrderServiceTest {
                 .willReturn(List.of(previousOrder));
         given(quoteApiClient.fetchAssetById(previousOrder.getAssetId())).willReturn(asset);
 
-        assertThatThrownBy(() -> orderService.placeBuyOrder(command, asset))
+        assertThatThrownBy(() -> orderService.placeBuyOrder(command, asset, CASH_HOLDING_ID))
                 .isInstanceOf(ApiException.class)
                 .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.BUY_ORDER_LIMIT_PER_CATEGORY);
     }

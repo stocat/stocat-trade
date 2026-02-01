@@ -34,6 +34,6 @@ public class BuyOrderExecutionUsecase {
         positionService.updateUserPosition(upsertCommand);
 
         // 캐시 홀딩 테이블 삭제 및 사용자 보유 금액 차감
-        cashService.consumeHoldingAndWithdraw(order.id());
+        cashService.consumeHoldingAndWithdraw(order.cashHoldingId());
     }
 }

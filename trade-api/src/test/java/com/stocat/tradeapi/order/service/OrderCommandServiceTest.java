@@ -37,14 +37,16 @@ public class OrderCommandServiceTest {
     void 매수주문_생성시_주문초기상태는_CREATED이다() {
         BuyOrderCommand command = createBuyOrderCommand();
         AssetDto asset = createUsdAssetDto();
+        Long cashHoldingId = 55L;
         given(orderRepository.save(any(Order.class)))
                 .will(invocation -> invocation.getArgument(0));
 
-        Order saved = orderCommandService.createBuyOrder(command, asset);
+        Order saved = orderCommandService.createBuyOrder(command, asset, cashHoldingId);
 
         assertThat(saved).satisfies(o -> {
             assertThat(o.getSide()).isEqualTo(TradeSide.BUY);
             assertThat(o.getStatus()).isEqualTo(OrderStatus.PENDING);
+            assertThat(o.getCashHoldingId()).isEqualTo(cashHoldingId);
         });
     }
 

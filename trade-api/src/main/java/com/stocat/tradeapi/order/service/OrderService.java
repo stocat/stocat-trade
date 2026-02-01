@@ -33,10 +33,10 @@ public class OrderService {
     private final MatchApiClient matchApiClient;
 
     @Transactional
-    public OrderDto placeBuyOrder(BuyOrderCommand command, AssetDto asset) {
+    public OrderDto placeBuyOrder(BuyOrderCommand command, AssetDto asset, Long cashHoldingId) {
         validateBuyOrder(command, asset);
 
-        Order order = orderCommandService.createBuyOrder(command, asset);
+        Order order = orderCommandService.createBuyOrder(command, asset, cashHoldingId);
         OrderDto dto = OrderDto.from(order);
 
         matchApiClient.submitBuyOrder(BuyOrderSubmissionRequest.from(order));

@@ -2,6 +2,7 @@ package com.stocat.tradeapi.cash.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,22 +53,23 @@ class CashServiceTest {
         CreateCashHoldingCommand command = new CreateCashHoldingCommand(
                 balance.getUserId(),
                 balance.getCurrency(),
-                123L,
                 BigDecimal.valueOf(100)
         );
         when(cashBalanceRepository.findByUserIdAndCurrencyForUpdate(balance.getUserId(), balance.getCurrency()))
                 .thenReturn(Optional.of(balance));
         when(cashHoldingRepository.sumAmountByCashBalanceIdAndStatus(balance.getId(), CashHoldingStatus.HELD))
                 .thenReturn(BigDecimal.ZERO);
+        when(cashHoldingRepository.save(any(CashHoldingEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        cashService.createCashHolding(command);
+        CashHoldingEntity result = cashService.createCashHolding(command);
 
         ArgumentCaptor<CashHoldingEntity> captor = ArgumentCaptor.forClass(CashHoldingEntity.class);
         verify(cashHoldingRepository).save(captor.capture());
         CashHoldingEntity saved = captor.getValue();
         assertThat(saved.getCashBalanceId()).isEqualTo(balance.getId());
-        assertThat(saved.getOrderId()).isEqualTo(123L);
         assertThat(saved.getAmount()).isEqualByComparingTo(command.amount());
+        assertThat(result).isEqualTo(saved);
     }
 
     @Test
@@ -75,7 +77,6 @@ class CashServiceTest {
         CreateCashHoldingCommand command = new CreateCashHoldingCommand(
                 balance.getUserId(),
                 balance.getCurrency(),
-                123L,
                 BigDecimal.valueOf(2_000)
         );
         when(cashBalanceRepository.findByUserIdAndCurrencyForUpdate(balance.getUserId(), balance.getCurrency()))
@@ -90,8 +91,8 @@ class CashServiceTest {
 
     @Test
     void 홀딩을_소진하면_잔액을_차감한다() {
-        CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), 123L, BigDecimal.valueOf(300));
-        when(cashHoldingRepository.findByOrderIdForUpdate(123L)).thenReturn(Optional.of(holding));
+        CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), BigDecimal.valueOf(300));
+        when(cashHoldingRepository.findByIdForUpdate(123L)).thenReturn(Optional.of(holding));
         when(cashBalanceRepository.findByIdForUpdate(balance.getId())).thenReturn(Optional.of(balance));
 
         cashService.consumeHoldingAndWithdraw(123L);
@@ -106,7 +107,6 @@ class CashServiceTest {
         CreateCashHoldingCommand command = new CreateCashHoldingCommand(
                 balance.getUserId(),
                 balance.getCurrency(),
-                1L,
                 BigDecimal.valueOf(10)
         );
         when(cashBalanceRepository.findByUserIdAndCurrencyForUpdate(balance.getUserId(), balance.getCurrency()))
@@ -122,7 +122,6 @@ class CashServiceTest {
         CreateCashHoldingCommand zeroCommand = new CreateCashHoldingCommand(
                 balance.getUserId(),
                 balance.getCurrency(),
-                1L,
                 BigDecimal.ZERO
         );
 
@@ -136,7 +135,6 @@ class CashServiceTest {
         CreateCashHoldingCommand command = new CreateCashHoldingCommand(
                 balance.getUserId(),
                 balance.getCurrency(),
-                1L,
                 BigDecimal.valueOf(700)
         );
         when(cashBalanceRepository.findByUserIdAndCurrencyForUpdate(balance.getUserId(), balance.getCurrency()))
@@ -151,7 +149,7 @@ class CashServiceTest {
 
     @Test
     void 홀딩이_없으면_소진시_예외() {
-        when(cashHoldingRepository.findByOrderIdForUpdate(1L)).thenReturn(Optional.empty());
+        when(cashHoldingRepository.findByIdForUpdate(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> cashService.consumeHoldingAndWithdraw(1L))
                 .isInstanceOf(ApiException.class)
@@ -160,14 +158,14 @@ class CashServiceTest {
 
     @Test
     void 계좌잔액이_부족하면_소진시_예외() {
-        CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), 1L, BigDecimal.valueOf(500));
+        CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), BigDecimal.valueOf(500));
         CashBalanceEntity lowBalance = CashBalanceEntity.builder()
                 .id(balance.getId())
                 .userId(balance.getUserId())
                 .currency(balance.getCurrency())
                 .balance(BigDecimal.valueOf(100))
                 .build();
-        when(cashHoldingRepository.findByOrderIdForUpdate(1L)).thenReturn(Optional.of(holding));
+        when(cashHoldingRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(holding));
         when(cashBalanceRepository.findByIdForUpdate(balance.getId()))
                 .thenReturn(Optional.of(lowBalance));
 
@@ -178,9 +176,9 @@ class CashServiceTest {
 
     @Test
     void 이미_종료된_홀딩이면_소진시_예외() {
-        CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), 1L, BigDecimal.TEN);
+        CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), BigDecimal.TEN);
         holding.consume();
-        when(cashHoldingRepository.findByOrderIdForUpdate(1L)).thenReturn(Optional.of(holding));
+        when(cashHoldingRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(holding));
 
         assertThatThrownBy(() -> cashService.consumeHoldingAndWithdraw(1L))
                 .isInstanceOf(ApiException.class)

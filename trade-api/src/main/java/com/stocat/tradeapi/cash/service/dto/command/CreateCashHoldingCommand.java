@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 public record CreateCashHoldingCommand(
         Long userId,
         Currency currency,
-        Long orderId,
         BigDecimal amount
 ) {
 }

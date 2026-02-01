@@ -37,6 +37,9 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private Long assetId;
 
+    @Column(name = "cash_holding_id")
+    private Long cashHoldingId;
+
 //    @Column(nullable = false)
 //    private AssetsCategory category;
 //

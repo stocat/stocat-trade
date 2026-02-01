@@ -6,8 +6,8 @@ import com.stocat.common.domain.cash.CashHoldingStatus;
 import com.stocat.common.exception.ApiException;
 import com.stocat.common.repository.CashBalanceRepository;
 import com.stocat.common.repository.CashHoldingRepository;
-import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.cash.service.dto.command.CreateCashHoldingCommand;
+import com.stocat.tradeapi.exception.TradeErrorCode;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ public class CashService {
     private final CashHoldingRepository cashHoldingRepository;
 
     @Transactional
-    public void createCashHolding(CreateCashHoldingCommand command) {
+    public CashHoldingEntity createCashHolding(CreateCashHoldingCommand command) {
         validateAmount(command.amount());
 
         CashBalanceEntity balance = cashBalanceRepository
@@ -33,14 +33,18 @@ public class CashService {
             throw new ApiException(TradeErrorCode.INSUFFICIENT_CASH_BALANCE);
         }
 
-        CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), command.orderId(), command.amount());
+        CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), command.amount());
         cashHoldingRepository.save(holding);
+        return holding;
     }
 
     @Transactional
-    public void consumeHoldingAndWithdraw(Long orderId) {
+    public void consumeHoldingAndWithdraw(Long cashHoldingId) {
+        if (cashHoldingId == null) {
+            throw new ApiException(TradeErrorCode.CASH_HOLDING_NOT_FOUND);
+        }
         CashHoldingEntity holding = cashHoldingRepository
-                .findByOrderIdForUpdate(orderId)
+                .findByIdForUpdate(cashHoldingId)
                 .orElseThrow(() -> new ApiException(TradeErrorCode.CASH_HOLDING_NOT_FOUND));
 
         try {

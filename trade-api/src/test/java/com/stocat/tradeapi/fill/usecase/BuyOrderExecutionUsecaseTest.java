@@ -68,6 +68,7 @@ class BuyOrderExecutionUsecaseTest {
                 1L,
                 7L,
                 10L,
+                55L,
                 TradeSide.BUY,
                 OrderType.MARKET,
                 OrderStatus.FILLED,
@@ -96,7 +97,7 @@ class BuyOrderExecutionUsecaseTest {
         assertThat(upsert.quantity()).isEqualByComparingTo(command.quantity());
         assertThat(upsert.avgEntryPrice()).isEqualByComparingTo(command.price());
 
-        verify(cashService).consumeHoldingAndWithdraw(order.id());
+        verify(cashService).consumeHoldingAndWithdraw(order.cashHoldingId());
     }
 
     @Test
@@ -141,13 +142,13 @@ class BuyOrderExecutionUsecaseTest {
     void 현금_소진_실패시_전체_롤백된다() {
         when(orderService.fillBuyOrder(command)).thenReturn(order);
         RuntimeException failure = new RuntimeException("cash failure");
-        doThrow(failure).when(cashService).consumeHoldingAndWithdraw(order.id());
+        doThrow(failure).when(cashService).consumeHoldingAndWithdraw(order.cashHoldingId());
 
         assertThatThrownBy(() -> usecase.fillBuyOrder(command)).isSameAs(failure);
 
         verify(orderService).fillBuyOrder(command);
         verify(tradeFillService).fillBuyOrder(command, order);
         verify(positionService).updateUserPosition(any(PositionUpsertCommand.class));
-        verify(cashService).consumeHoldingAndWithdraw(order.id());
+        verify(cashService).consumeHoldingAndWithdraw(order.cashHoldingId());
     }
 }

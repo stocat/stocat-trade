@@ -17,10 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderCommandService {
     private final OrderRepository orderRepository;
 
-    public Order createBuyOrder(BuyOrderCommand command, AssetDto asset) {
+    public Order createBuyOrder(BuyOrderCommand command, AssetDto asset, Long cashHoldingId) {
         Order order = Order.builder()
                 .userId(command.userId())
                 .assetId(asset.id())
+                .cashHoldingId(cashHoldingId)
                 .side(TradeSide.BUY)
                 .type(command.orderType())
                 .status(OrderStatus.PENDING)

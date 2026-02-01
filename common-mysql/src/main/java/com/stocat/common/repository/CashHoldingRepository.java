@@ -13,8 +13,8 @@ import org.springframework.data.repository.query.Param;
 public interface CashHoldingRepository extends JpaRepository<CashHoldingEntity, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select h from CashHoldingEntity h where h.orderId = :orderId")
-    Optional<CashHoldingEntity> findByOrderIdForUpdate(@Param("orderId") Long orderId);
+    @Query("select h from CashHoldingEntity h where h.id = :id")
+    Optional<CashHoldingEntity> findByIdForUpdate(@Param("id") Long id);
 
     @Query("select coalesce(sum(h.amount), 0) from CashHoldingEntity h where h.cashBalanceId = :cashBalanceId and h.status = :status")
     BigDecimal sumAmountByCashBalanceIdAndStatus(

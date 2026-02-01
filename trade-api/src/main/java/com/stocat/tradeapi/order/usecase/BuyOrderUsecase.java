@@ -1,5 +1,6 @@
 package com.stocat.tradeapi.order.usecase;
 
+import com.stocat.common.domain.cash.CashHoldingEntity;
 import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.cash.service.CashService;
 import com.stocat.tradeapi.cash.service.dto.command.CreateCashHoldingCommand;
@@ -25,31 +26,30 @@ public class BuyOrderUsecase {
         AssetDto asset = quoteApiClient.fetchAsset(command.assetSymbol());
         validateAsset(asset);
 
-        OrderDto order = orderService.placeBuyOrder(command, asset);
-        holdCash(order, asset, command);
+        CashHoldingEntity holding = holdCash(asset, command);
+        OrderDto order = orderService.placeBuyOrder(command, asset, holding.getId());
 
         return order;
     }
 
     private void validateAsset(AssetDto asset) {
-//        if (asset == null) {
-//            throw new ApiException(TradeErrorCode.ASSET_NOT_FOUND);
-//        }
+        if (asset == null) {
+            throw new ApiException(TradeErrorCode.ASSET_NOT_FOUND);
+        }
         if (!asset.isDaily()) {
             throw new ApiException(TradeErrorCode.NOT_DAILY_PICK_ASSET);
         }
     }
 
-    private void holdCash(OrderDto order, AssetDto asset, BuyOrderCommand command) {
+    private CashHoldingEntity holdCash(AssetDto asset, BuyOrderCommand command) {
         if (asset.currency() == null || command.price() == null) {
             throw new ApiException(TradeErrorCode.INTERNAL_ERROR);
         }
         CreateCashHoldingCommand holdingCommand = new CreateCashHoldingCommand(
-                order.userId(),
+                command.userId(),
                 asset.currency(),
-                order.id(),
                 command.price().multiply(command.quantity())
         );
-        cashService.createCashHolding(holdingCommand);
+        return cashService.createCashHolding(holdingCommand);
     }
 }

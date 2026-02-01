@@ -31,9 +31,6 @@ public class CashHoldingEntity extends BaseEntity {
     @Column(name = "cash_balance_id", nullable = false)
     private Long cashBalanceId;
 
-    @Column(name = "order_id", nullable = false)
-    private Long orderId;
-
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
@@ -41,19 +38,15 @@ public class CashHoldingEntity extends BaseEntity {
     @Column(name = "status", nullable = false, length = 10)
     private CashHoldingStatus status;
 
-    public static CashHoldingEntity hold(Long cashBalanceId, Long orderId, BigDecimal amount) {
+    public static CashHoldingEntity hold(Long cashBalanceId, BigDecimal amount) {
         if (cashBalanceId == null) {
             throw new IllegalArgumentException("cash balance id is required");
-        }
-        if (orderId == null) {
-            throw new IllegalArgumentException("orderId is required");
         }
         if (amount == null || amount.signum() <= 0) {
             throw new IllegalArgumentException("amount must be positive");
         }
         return CashHoldingEntity.builder()
                 .cashBalanceId(cashBalanceId)
-                .orderId(orderId)
                 .amount(amount)
                 .status(CashHoldingStatus.HELD)
                 .build();

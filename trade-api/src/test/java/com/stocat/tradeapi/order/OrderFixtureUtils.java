@@ -17,6 +17,7 @@ public final class OrderFixtureUtils {
     private static final Long USER_ID = 1L;
     private static final Long ORDER_ID = 1000L;
     private static final Long ASSET_ID = 1L;
+    private static final Long CASH_HOLDING_ID = 10_000L;
 
     public static BuyOrderCommand createBuyOrderCommand() {
         return createBuyOrderCommand(createUsdAssetDto());
@@ -65,6 +66,7 @@ public final class OrderFixtureUtils {
                 .id(ORDER_ID)
                 .userId(USER_ID)
                 .assetId(ASSET_ID)
+                .cashHoldingId(CASH_HOLDING_ID)
                 .side(TradeSide.BUY)
                 .type(OrderType.LIMIT)
                 .status(status)
@@ -79,6 +81,7 @@ public final class OrderFixtureUtils {
                 .id(ORDER_ID)
                 .userId(command.userId())
                 .assetId(ASSET_ID)
+                .cashHoldingId(CASH_HOLDING_ID)
                 .side(TradeSide.BUY)
                 .type(command.orderType())
                 .status(OrderStatus.PENDING)

@@ -81,7 +81,8 @@ class BuyOrderUsecaseTest {
         List<CashHoldingEntity> holdings = cashHoldingRepository.findAll();
         assertThat(holdings).hasSize(1);
         CashHoldingEntity holding = holdings.getFirst();
-        assertThat(holding.getOrderId()).isEqualTo(orderDto.id());
+        assertThat(persistedOrder.getCashHoldingId()).isEqualTo(holding.getId());
+        assertThat(orderDto.cashHoldingId()).isEqualTo(holding.getId());
         assertThat(holding.getAmount()).isEqualByComparingTo(command.price().multiply(command.quantity()));
         assertThat(holding.getStatus()).isEqualTo(CashHoldingStatus.HELD);
     }
