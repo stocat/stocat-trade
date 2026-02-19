@@ -2,7 +2,6 @@ package com.stocat.tradeapi.cash.service;
 
 import com.stocat.common.domain.cash.CashBalanceEntity;
 import com.stocat.common.domain.cash.CashHoldingEntity;
-import com.stocat.common.domain.cash.CashHoldingStatus;
 import com.stocat.common.exception.ApiException;
 import com.stocat.common.repository.CashBalanceRepository;
 import com.stocat.common.repository.CashHoldingRepository;
@@ -34,10 +33,7 @@ public class CashService {
             throw new ApiException(TradeErrorCode.INSUFFICIENT_CASH_BALANCE);
         }
 
-        CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), command.amount());
-        cashHoldingRepository.save(holding);
-        cashBalanceRepository.save(balance);
-        return holding;
+        return CashHoldingEntity.hold(balance.getId(), command.amount());
     }
 
     @Transactional
@@ -64,9 +60,6 @@ public class CashService {
         } catch (IllegalStateException ex) {
             throw new ApiException(TradeErrorCode.INSUFFICIENT_CASH_BALANCE);
         }
-
-        cashBalanceRepository.save(balance);
-        cashHoldingRepository.save(holding);
     }
 
     private void validateAmount(BigDecimal amount) {
