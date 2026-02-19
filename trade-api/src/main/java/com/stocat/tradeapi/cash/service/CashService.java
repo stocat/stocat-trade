@@ -56,7 +56,7 @@ public class CashService {
                 .orElseThrow(() -> new ApiException(TradeErrorCode.CASH_BALANCE_NOT_FOUND));
 
         try {
-            balance.withdraw(holding.getAmount());
+            balance.settleReservedAmount(holding.getAmount());
         } catch (IllegalStateException ex) {
             throw new ApiException(TradeErrorCode.INSUFFICIENT_CASH_BALANCE);
         }

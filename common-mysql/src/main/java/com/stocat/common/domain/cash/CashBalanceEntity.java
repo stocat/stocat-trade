@@ -52,7 +52,7 @@ public class CashBalanceEntity extends BaseEntity {
         reservedBalance = reservedBalance.add(amount);
     }
 
-    public void withdraw(BigDecimal amount) {
+    public void settleReservedAmount(BigDecimal amount) {
         requirePositive(amount);
         if (reservedBalance.compareTo(amount) < 0) {
             throw new IllegalStateException("cannot settle more than reserved balance");
