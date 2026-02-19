@@ -54,15 +54,14 @@ public class CashBalanceEntity extends BaseEntity {
 
     public void withdraw(BigDecimal amount) {
         requirePositive(amount);
+        if (reservedBalance.compareTo(amount) < 0) {
+            throw new IllegalStateException("cannot settle more than reserved balance");
+        }
         if (balance.compareTo(amount) < 0) {
             throw new IllegalStateException("insufficient cash balance");
         }
         balance = balance.subtract(amount);
-
-        // 예약금에서 실제 출금으로 이어지는 경우 예약금도 함께 차감
-        if (reservedBalance.compareTo(amount) >= 0) {
-            reservedBalance = reservedBalance.subtract(amount);
-        }
+        reservedBalance = reservedBalance.subtract(amount);
     }
 
     public void cancelReservation(BigDecimal amount) {
