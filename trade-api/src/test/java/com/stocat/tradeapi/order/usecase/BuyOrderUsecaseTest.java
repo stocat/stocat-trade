@@ -84,7 +84,7 @@ class BuyOrderUsecaseTest {
         assertThat(persistedOrder.getCashHoldingId()).isEqualTo(holding.getId());
         assertThat(orderDto.cashHoldingId()).isEqualTo(holding.getId());
         assertThat(holding.getAmount()).isEqualByComparingTo(command.price().multiply(command.quantity()));
-        assertThat(holding.getStatus()).isEqualTo(CashHoldingStatus.HELD);
+        assertThat(holding.getStatus()).isEqualTo(CashHoldingStatus.HOLD);
     }
 
     @Test

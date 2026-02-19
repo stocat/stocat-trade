@@ -48,12 +48,12 @@ public class CashHoldingEntity extends BaseEntity {
         return CashHoldingEntity.builder()
                 .cashBalanceId(cashBalanceId)
                 .amount(amount)
-                .status(CashHoldingStatus.HELD)
+                .status(CashHoldingStatus.HOLD)
                 .build();
     }
 
     public void consume() {
-        if (status != CashHoldingStatus.HELD) { // HELD 상태에서만 변경 가능
+        if (status != CashHoldingStatus.HOLD) { // HELD 상태에서만 변경 가능
             throw new IllegalStateException("holding already finalized");
         }
         status = CashHoldingStatus.CONSUMED;
