@@ -57,19 +57,19 @@ class CashServiceTest {
         );
         when(cashBalanceRepository.findByUserIdAndCurrencyForUpdate(balance.getUserId(), balance.getCurrency()))
                 .thenReturn(Optional.of(balance));
-        when(cashHoldingRepository.sumAmountByCashBalanceIdAndStatus(balance.getId(), CashHoldingStatus.HELD))
-                .thenReturn(BigDecimal.ZERO);
         when(cashHoldingRepository.save(any(CashHoldingEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         CashHoldingEntity result = cashService.createCashHolding(command);
 
+        assertThat(balance.getReservedBalance()).isEqualByComparingTo(BigDecimal.valueOf(100));
         ArgumentCaptor<CashHoldingEntity> captor = ArgumentCaptor.forClass(CashHoldingEntity.class);
         verify(cashHoldingRepository).save(captor.capture());
         CashHoldingEntity saved = captor.getValue();
         assertThat(saved.getCashBalanceId()).isEqualTo(balance.getId());
         assertThat(saved.getAmount()).isEqualByComparingTo(command.amount());
         assertThat(result).isEqualTo(saved);
+        verify(cashBalanceRepository).save(balance);
     }
 
     @Test
@@ -81,8 +81,6 @@ class CashServiceTest {
         );
         when(cashBalanceRepository.findByUserIdAndCurrencyForUpdate(balance.getUserId(), balance.getCurrency()))
                 .thenReturn(Optional.of(balance));
-        when(cashHoldingRepository.sumAmountByCashBalanceIdAndStatus(balance.getId(), CashHoldingStatus.HELD))
-                .thenReturn(BigDecimal.ZERO);
 
         assertThatThrownBy(() -> cashService.createCashHolding(command))
                 .isInstanceOf(ApiException.class)
@@ -91,13 +89,19 @@ class CashServiceTest {
 
     @Test
     void 홀딩을_소진하면_잔액을_차감한다() {
+        // Given: 미리 300원이 예약된 상태
+        balance.reserve(BigDecimal.valueOf(300));
         CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), BigDecimal.valueOf(300));
+        
         when(cashHoldingRepository.findByIdForUpdate(123L)).thenReturn(Optional.of(holding));
         when(cashBalanceRepository.findByIdForUpdate(balance.getId())).thenReturn(Optional.of(balance));
 
+        // When
         cashService.consumeHoldingAndWithdraw(123L);
 
+        // Then: 전체 잔액 1000 -> 700, 예약금 300 -> 0
         assertThat(balance.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(700));
+        assertThat(balance.getReservedBalance()).isEqualByComparingTo(BigDecimal.ZERO);
         verify(cashBalanceRepository).save(balance);
         verify(cashHoldingRepository).save(holding);
     }
@@ -132,15 +136,16 @@ class CashServiceTest {
 
     @Test
     void 기존_홀딩으로_가용금액이_부족하면_예외() {
+        // Given: 이미 400원 예약 중 (남은 가용금액 600)
+        balance.reserve(BigDecimal.valueOf(400));
+        
         CreateCashHoldingCommand command = new CreateCashHoldingCommand(
                 balance.getUserId(),
                 balance.getCurrency(),
-                BigDecimal.valueOf(700)
+                BigDecimal.valueOf(700) // 600보다 큼
         );
         when(cashBalanceRepository.findByUserIdAndCurrencyForUpdate(balance.getUserId(), balance.getCurrency()))
                 .thenReturn(Optional.of(balance));
-        when(cashHoldingRepository.sumAmountByCashBalanceIdAndStatus(balance.getId(), CashHoldingStatus.HELD))
-                .thenReturn(BigDecimal.valueOf(400));
 
         assertThatThrownBy(() -> cashService.createCashHolding(command))
                 .isInstanceOf(ApiException.class)
@@ -164,6 +169,7 @@ class CashServiceTest {
                 .userId(balance.getUserId())
                 .currency(balance.getCurrency())
                 .balance(BigDecimal.valueOf(100))
+                .reservedBalance(BigDecimal.valueOf(500))
                 .build();
         when(cashHoldingRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(holding));
         when(cashBalanceRepository.findByIdForUpdate(balance.getId()))

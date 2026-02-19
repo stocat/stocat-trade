@@ -39,12 +39,38 @@ public class CashBalanceEntity extends BaseEntity {
     @Column(name = "balance", nullable = false)
     private BigDecimal balance;
 
+    @Column(name = "reserved_balance", nullable = false)
+    @Builder.Default
+    private BigDecimal reservedBalance = BigDecimal.ZERO;
+
+    public void reserve(BigDecimal amount) {
+        requirePositive(amount);
+        BigDecimal available = balance.subtract(reservedBalance);
+        if (available.compareTo(amount) < 0) {
+            throw new IllegalStateException("insufficient available balance to reserve");
+        }
+        reservedBalance = reservedBalance.add(amount);
+    }
+
     public void withdraw(BigDecimal amount) {
         requirePositive(amount);
         if (balance.compareTo(amount) < 0) {
             throw new IllegalStateException("insufficient cash balance");
         }
         balance = balance.subtract(amount);
+
+        // 예약금에서 실제 출금으로 이어지는 경우 예약금도 함께 차감
+        if (reservedBalance.compareTo(amount) >= 0) {
+            reservedBalance = reservedBalance.subtract(amount);
+        }
+    }
+
+    public void cancelReservation(BigDecimal amount) {
+        requirePositive(amount);
+        if (reservedBalance.compareTo(amount) < 0) {
+            throw new IllegalStateException("cannot cancel more than reserved balance");
+        }
+        reservedBalance = reservedBalance.subtract(amount);
     }
 
     private void requirePositive(BigDecimal amount) {

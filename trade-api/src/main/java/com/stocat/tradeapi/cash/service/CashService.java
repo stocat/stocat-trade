@@ -28,13 +28,15 @@ public class CashService {
                 .findByUserIdAndCurrencyForUpdate(command.userId(), command.currency())
                 .orElseThrow(() -> new ApiException(TradeErrorCode.CASH_BALANCE_NOT_FOUND));
 
-        BigDecimal available = balance.getBalance().subtract(getActiveHeldAmount(balance.getId()));
-        if (available.compareTo(command.amount()) < 0) {
+        try {
+            balance.reserve(command.amount());
+        } catch (IllegalStateException ex) {
             throw new ApiException(TradeErrorCode.INSUFFICIENT_CASH_BALANCE);
         }
 
         CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), command.amount());
         cashHoldingRepository.save(holding);
+        cashBalanceRepository.save(balance);
         return holding;
     }
 
@@ -57,11 +59,12 @@ public class CashService {
                 .findByIdForUpdate(holding.getCashBalanceId())
                 .orElseThrow(() -> new ApiException(TradeErrorCode.CASH_BALANCE_NOT_FOUND));
 
-        if (balance.getBalance().compareTo(holding.getAmount()) < 0) {
+        try {
+            balance.withdraw(holding.getAmount());
+        } catch (IllegalStateException ex) {
             throw new ApiException(TradeErrorCode.INSUFFICIENT_CASH_BALANCE);
         }
 
-        balance.withdraw(holding.getAmount());
         cashBalanceRepository.save(balance);
         cashHoldingRepository.save(holding);
     }
@@ -70,12 +73,5 @@ public class CashService {
         if (amount == null || amount.signum() <= 0) {
             throw new ApiException(TradeErrorCode.INVALID_CASH_AMOUNT);
         }
-    }
-
-    private BigDecimal getActiveHeldAmount(Long cashBalanceId) {
-        BigDecimal heldAmount = cashHoldingRepository
-                .sumAmountByCashBalanceIdAndStatus(cashBalanceId, CashHoldingStatus.HELD);
-
-        return heldAmount == null ? BigDecimal.ZERO : heldAmount;
     }
 }
