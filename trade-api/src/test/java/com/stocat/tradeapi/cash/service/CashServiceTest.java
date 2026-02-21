@@ -8,13 +8,18 @@ import static org.mockito.Mockito.when;
 import com.stocat.common.domain.Currency;
 import com.stocat.common.domain.cash.CashBalanceEntity;
 import com.stocat.common.domain.cash.CashHoldingEntity;
+import com.stocat.common.domain.cash.CashTransactionEntity;
+import com.stocat.common.domain.cash.CashTransactionType;
 import com.stocat.common.exception.ApiException;
 import com.stocat.common.repository.CashBalanceRepository;
 import com.stocat.common.repository.CashHoldingRepository;
+import com.stocat.common.repository.CashTransactionRepository;
 import com.stocat.tradeapi.cash.service.dto.CashBalanceDto;
+import com.stocat.tradeapi.cash.service.dto.CashTransactionHistoryDto;
 import com.stocat.tradeapi.cash.service.dto.command.CreateCashHoldingCommand;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +28,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class CashServiceTest {
@@ -31,6 +39,8 @@ class CashServiceTest {
     private CashBalanceRepository cashBalanceRepository;
     @Mock
     private CashHoldingRepository cashHoldingRepository;
+    @Mock
+    private CashTransactionRepository cashTransactionRepository;
 
     private CashService cashService;
 
@@ -39,7 +49,11 @@ class CashServiceTest {
     @BeforeEach
     void setUp() {
         CashCommandService commandService = new CashCommandService(cashHoldingRepository);
-        CashQueryService queryService = new CashQueryService(cashBalanceRepository, cashHoldingRepository);
+        CashQueryService queryService = new CashQueryService(
+                cashBalanceRepository,
+                cashHoldingRepository,
+                cashTransactionRepository
+        );
         cashService = new CashService(commandService, queryService);
 
         balance = CashBalanceEntity.builder()
@@ -146,10 +160,69 @@ class CashServiceTest {
                     .thenReturn(Optional.of(balance));
 
             CashBalanceDto result = cashService.getCashBalance(99L, Currency.USD);
-            
+
             assertThat(result.balance()).isEqualByComparingTo(BigDecimal.valueOf(1_000));
             assertThat(result.availableAmount()).isEqualByComparingTo(BigDecimal.valueOf(800));
             assertThat(result.currency()).isEqualTo(Currency.USD);
+        }
+    }
+
+    @Nested
+    @DisplayName("현금 거래 이력 조회 검증")
+    class GetTransactions {
+
+        @Test
+        void 현금_거래_이력을_페이징하여_조회한다() {
+            // Given
+            Long userId = 99L;
+            Currency currency = Currency.USD;
+            Pageable pageable = PageRequest.of(0, 10);
+
+            CashTransactionEntity tx = CashTransactionEntity.builder()
+                    .userId(userId)
+                    .currency(currency)
+                    .amount(BigDecimal.valueOf(500))
+                    .balanceAfter(BigDecimal.valueOf(1500))
+                    .transactionType(CashTransactionType.DEPOSIT)
+                    .build();
+
+            when(cashTransactionRepository.findTransactions(userId, currency, null, pageable))
+                    .thenReturn(new PageImpl<>(List.of(tx), pageable, 1));
+
+            // When
+            CashTransactionHistoryDto result = cashService.getCashTransactions(userId, currency, null, pageable);
+
+            // Then
+            assertThat(result.transactions()).hasSize(1);
+            assertThat(result.transactions().get(0).amount()).isEqualByComparingTo(BigDecimal.valueOf(500));
+            assertThat(result.transactions().get(0).transactionType()).isEqualTo(CashTransactionType.DEPOSIT);
+        }
+
+        @Test
+        void 특정_타입의_현금_거래_이력을_조회한다() {
+            // Given
+            Long userId = 99L;
+            Currency currency = Currency.USD;
+            CashTransactionType type = CashTransactionType.WITHDRAW;
+            Pageable pageable = PageRequest.of(0, 10);
+
+            CashTransactionEntity tx = CashTransactionEntity.builder()
+                    .userId(userId)
+                    .currency(currency)
+                    .amount(BigDecimal.valueOf(200))
+                    .balanceAfter(BigDecimal.valueOf(800))
+                    .transactionType(CashTransactionType.WITHDRAW)
+                    .build();
+
+            when(cashTransactionRepository.findTransactions(userId, currency, type, pageable))
+                    .thenReturn(new PageImpl<>(List.of(tx), pageable, 1));
+
+            // When
+            CashTransactionHistoryDto result = cashService.getCashTransactions(userId, currency, type, pageable);
+
+            // Then
+            assertThat(result.transactions()).hasSize(1);
+            assertThat(result.transactions().get(0).transactionType()).isEqualTo(CashTransactionType.WITHDRAW);
         }
     }
 }

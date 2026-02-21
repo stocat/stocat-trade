@@ -1,14 +1,20 @@
 package com.stocat.tradeapi.cash.controller;
 
 import com.stocat.common.domain.Currency;
+import com.stocat.common.domain.cash.CashTransactionType;
 import com.stocat.common.response.ApiResponse;
 import com.stocat.tradeapi.cash.controller.dto.CashBalanceResponse;
+import com.stocat.tradeapi.cash.controller.dto.CashTransactionHistoryResponse;
 import com.stocat.tradeapi.cash.service.CashService;
 import com.stocat.tradeapi.cash.service.dto.CashBalanceDto;
+import com.stocat.tradeapi.cash.service.dto.CashTransactionHistoryDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -17,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Validated
 @RestController
@@ -38,6 +46,21 @@ public class CashController {
     ) {
         CashBalanceDto cashBalance = cashService.getCashBalance(userId, currency);
         CashBalanceResponse response = CashBalanceResponse.from(cashBalance);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/history")
+    @Operation(summary = "현금 입출금 내역 조회", description = "입금/출금 기록을 최신순으로 조회합니다.")
+    public ResponseEntity<ApiResponse<CashTransactionHistoryResponse>> getCashHistory(
+            @Positive @RequestHeader("X-USER-ID") Long userId,
+            @NotNull @RequestParam("currency") Currency currency,
+            @RequestParam(value = "transactionType", required = false) CashTransactionType transactionType,
+            @PositiveOrZero @RequestParam(value = "page", defaultValue = "0") int page,
+            @Min(1) @Max(100) @RequestParam(value = "size", defaultValue = "20") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        CashTransactionHistoryDto history = cashService.getCashTransactions(userId, currency, transactionType, pageable);
+        CashTransactionHistoryResponse response = CashTransactionHistoryResponse.from(history);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

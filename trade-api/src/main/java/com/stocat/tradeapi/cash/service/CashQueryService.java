@@ -3,11 +3,16 @@ package com.stocat.tradeapi.cash.service;
 import com.stocat.common.domain.Currency;
 import com.stocat.common.domain.cash.CashBalanceEntity;
 import com.stocat.common.domain.cash.CashHoldingEntity;
+import com.stocat.common.domain.cash.CashTransactionEntity;
+import com.stocat.common.domain.cash.CashTransactionType;
 import com.stocat.common.exception.ApiException;
 import com.stocat.common.repository.CashBalanceRepository;
 import com.stocat.common.repository.CashHoldingRepository;
+import com.stocat.common.repository.CashTransactionRepository;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +23,7 @@ public class CashQueryService {
 
     private final CashBalanceRepository cashBalanceRepository;
     private final CashHoldingRepository cashHoldingRepository;
+    private final CashTransactionRepository cashTransactionRepository;
 
     public CashBalanceEntity getCashBalance(Long userId, Currency currency) {
         return cashBalanceRepository
@@ -41,5 +47,15 @@ public class CashQueryService {
         }
         return cashHoldingRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ApiException(TradeErrorCode.CASH_HOLDING_NOT_FOUND));
+    }
+
+    public Page<CashTransactionEntity> getCashTransactions(
+            Long userId,
+            Currency currency,
+            CashTransactionType transactionType,
+            Pageable pageable
+    ) {
+        return cashTransactionRepository
+                .findTransactions(userId, currency, transactionType, pageable);
     }
 }
