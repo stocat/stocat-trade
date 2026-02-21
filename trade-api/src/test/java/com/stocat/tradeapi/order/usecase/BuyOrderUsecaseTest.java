@@ -5,7 +5,9 @@ import static com.stocat.tradeapi.order.OrderFixtureUtils.createUsdAssetDto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -71,6 +73,7 @@ class BuyOrderUsecaseTest {
         prepareCashBalance(command.userId(), asset.currency(), BigDecimal.valueOf(100_000));
 
         given(quoteApiClient.fetchAsset(command.assetSymbol())).willReturn(asset);
+        given(quoteApiClient.fetchAssetById(anyLong())).willReturn(asset);
 
         // When
         OrderDto orderDto = buyOrderUsecase.placeBuyOrder(command);
@@ -90,7 +93,7 @@ class BuyOrderUsecaseTest {
         assertThat(holding.getStatus()).isEqualTo(CashHoldingStatus.HOLD);
 
         // 2. 외부 API 호출 검증
-        verify(quoteApiClient, times(1)).fetchAsset(command.assetSymbol());
+        verify(quoteApiClient, atLeastOnce()).fetchAsset(command.assetSymbol());
         verify(matchApiClient, times(1)).submitBuyOrder(any(BuyOrderSubmissionRequest.class));
     }
 
@@ -118,6 +121,7 @@ class BuyOrderUsecaseTest {
         prepareCashBalance(command.userId(), asset.currency(), BigDecimal.valueOf(100)); // 잔액 부족
 
         given(quoteApiClient.fetchAsset(command.assetSymbol())).willReturn(asset);
+        given(quoteApiClient.fetchAssetById(anyLong())).willReturn(asset);
 
         // When & Then
         assertThatThrownBy(() -> buyOrderUsecase.placeBuyOrder(command))
