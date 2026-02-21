@@ -5,7 +5,6 @@ import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.fill.dto.FillBuyOrderCommand;
-import com.stocat.tradeapi.infrastructure.matchapi.MatchApiClient;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
 import com.stocat.tradeapi.order.service.dto.command.OrderCancelCommand;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +20,6 @@ public class OrderService {
     private final OrderQueryService orderQueryService;
     private final OrderCommandService orderCommandService;
 
-    private final MatchApiClient matchApiClient;
-
     @Transactional
     public OrderDto cancelOrder(OrderCancelCommand command) {
         Order order = orderQueryService.findByIdForUpdate(command.orderId());
@@ -30,8 +27,6 @@ public class OrderService {
         if (!order.getUserId().equals(command.userId())) {
             throw new ApiException(TradeErrorCode.ORDER_PERMISSION_DENIED);
         }
-
-        matchApiClient.cancelOrder(command.orderId());
 
         order = orderCommandService.updateOrderStatus(order, OrderStatus.CANCELED);
         return OrderDto.from(order);

@@ -10,7 +10,6 @@ import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.exception.TradeErrorCode;
-import com.stocat.tradeapi.infrastructure.matchapi.MatchApiClient;
 import com.stocat.tradeapi.order.OrderFixtureUtils;
 import com.stocat.tradeapi.order.service.dto.command.OrderCancelCommand;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,14 +24,12 @@ public class OrderServiceTest {
     private OrderQueryService orderQueryService;
     @Mock
     private OrderCommandService orderCommandService;
-    @Mock
-    private MatchApiClient matchApiClient;
 
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderService(orderQueryService, orderCommandService, matchApiClient);
+        orderService = new OrderService(orderQueryService, orderCommandService);
     }
 
     @Test
