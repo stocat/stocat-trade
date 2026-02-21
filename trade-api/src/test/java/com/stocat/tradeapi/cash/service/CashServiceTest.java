@@ -12,6 +12,7 @@ import com.stocat.common.domain.cash.CashHoldingEntity;
 import com.stocat.common.exception.ApiException;
 import com.stocat.common.repository.CashBalanceRepository;
 import com.stocat.common.repository.CashHoldingRepository;
+import com.stocat.tradeapi.cash.service.dto.CashBalanceDto;
 import com.stocat.tradeapi.cash.service.dto.command.CreateCashHoldingCommand;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import java.math.BigDecimal;
@@ -43,6 +44,7 @@ class CashServiceTest {
                 .userId(99L)
                 .currency(Currency.USD)
                 .balance(BigDecimal.valueOf(1_000))
+                .reservedBalance(BigDecimal.ZERO)
                 .build();
     }
 
@@ -181,5 +183,37 @@ class CashServiceTest {
         assertThatThrownBy(() -> cashService.consumeHoldingAndWithdraw(1L))
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining(TradeErrorCode.CASH_HOLDING_ALREADY_FINALIZED.message());
+    }
+
+    @Test
+    void 유저의_현금_잔액을_조회한다() {
+        when(cashBalanceRepository.findByUserIdAndCurrency(balance.getUserId(), balance.getCurrency()))
+                .thenReturn(Optional.of(balance));
+
+        CashBalanceDto result = cashService.getCashBalance(balance.getUserId(), balance.getCurrency());
+
+        assertThat(result.balance()).isEqualByComparingTo(balance.getBalance());
+        assertThat(result.currency()).isEqualTo(balance.getCurrency());
+    }
+
+    @Test
+    void 예약금액을_제외한_주문가능금액을_확인한다() {
+        balance.reserve(BigDecimal.valueOf(250));
+        when(cashBalanceRepository.findByUserIdAndCurrency(balance.getUserId(), balance.getCurrency()))
+                .thenReturn(Optional.of(balance));
+
+        CashBalanceDto result = cashService.getCashBalance(balance.getUserId(), balance.getCurrency());
+
+        assertThat(result.availableAmount()).isEqualByComparingTo(BigDecimal.valueOf(750));
+    }
+
+    @Test
+    void 현금잔액이_없으면_조회시_예외() {
+        when(cashBalanceRepository.findByUserIdAndCurrency(balance.getUserId(), balance.getCurrency()))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> cashService.getCashBalance(balance.getUserId(), balance.getCurrency()))
+                .isInstanceOf(ApiException.class)
+                .hasMessageContaining(TradeErrorCode.CASH_BALANCE_NOT_FOUND.message());
     }
 }

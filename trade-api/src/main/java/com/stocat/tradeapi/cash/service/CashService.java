@@ -1,10 +1,12 @@
 package com.stocat.tradeapi.cash.service;
 
+import com.stocat.common.domain.Currency;
 import com.stocat.common.domain.cash.CashBalanceEntity;
 import com.stocat.common.domain.cash.CashHoldingEntity;
 import com.stocat.common.exception.ApiException;
 import com.stocat.common.repository.CashBalanceRepository;
 import com.stocat.common.repository.CashHoldingRepository;
+import com.stocat.tradeapi.cash.service.dto.CashBalanceDto;
 import com.stocat.tradeapi.cash.service.dto.command.CreateCashHoldingCommand;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import java.math.BigDecimal;
@@ -61,6 +63,14 @@ public class CashService {
         } catch (IllegalStateException ex) {
             throw new ApiException(TradeErrorCode.INSUFFICIENT_CASH_BALANCE);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public CashBalanceDto getCashBalance(Long userId, Currency currency) {
+        CashBalanceEntity balance = cashBalanceRepository
+                .findByUserIdAndCurrency(userId, currency)
+                .orElseThrow(() -> new ApiException(TradeErrorCode.CASH_BALANCE_NOT_FOUND));
+        return CashBalanceDto.from(balance);
     }
 
     private void validateAmount(BigDecimal amount) {

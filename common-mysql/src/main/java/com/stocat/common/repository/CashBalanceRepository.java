@@ -11,6 +11,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface CashBalanceRepository extends JpaRepository<CashBalanceEntity, Long> {
 
+    Optional<CashBalanceEntity> findByUserIdAndCurrency(Long userId, Currency currency);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select c from CashBalanceEntity c where c.userId = :userId and c.currency = :currency")
     Optional<CashBalanceEntity> findByUserIdAndCurrencyForUpdate(
