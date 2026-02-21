@@ -145,7 +145,7 @@ class CashServiceTest {
             // When & Then
             assertThatThrownBy(() -> cashService.consumeHoldingAndWithdraw(1L))
                     .isInstanceOf(ApiException.class)
-                    .hasMessageContaining(TradeErrorCode.INSUFFICIENT_CASH_BALANCE.message());
+                    .hasMessageContaining(TradeErrorCode.CASH_HOLDING_ALREADY_FINALIZED.message());
         }
     }
 

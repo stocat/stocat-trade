@@ -18,6 +18,8 @@ public class CashCommandService {
     private final CashHoldingRepository cashHoldingRepository;
 
     public CashHoldingEntity createCashHolding(CashBalanceEntity balance, BigDecimal amount) {
+        validateAmount(amount);
+
         try {
             balance.reserve(amount);
         } catch (IllegalStateException ex) {
@@ -29,9 +31,19 @@ public class CashCommandService {
     public void consumeHolding(CashHoldingEntity holding, CashBalanceEntity balance) {
         try {
             holding.consume();
+        } catch (IllegalStateException ex) {
+            throw new ApiException(TradeErrorCode.CASH_HOLDING_ALREADY_FINALIZED, ex);
+        }
+        try {
             balance.settleReservedAmount(holding.getAmount());
         } catch (IllegalStateException ex) {
-            throw new ApiException(TradeErrorCode.INSUFFICIENT_CASH_BALANCE);
+            throw new ApiException(TradeErrorCode.INSUFFICIENT_CASH_BALANCE, ex);
+        }
+    }
+
+    private void validateAmount(BigDecimal amount) {
+        if (amount == null || amount.signum() <= 0) {
+            throw new ApiException(TradeErrorCode.INVALID_CASH_AMOUNT);
         }
     }
 }
