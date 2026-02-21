@@ -31,6 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @ExtendWith(MockitoExtension.class)
 class CashServiceTest {
@@ -176,7 +177,7 @@ class CashServiceTest {
             // Given
             Long userId = 99L;
             Currency currency = Currency.USD;
-            Pageable pageable = PageRequest.of(0, 10);
+            Pageable pageable = PageRequest.of(0, 10, Sort.by("id").descending());
 
             CashTransactionEntity tx = CashTransactionEntity.builder()
                     .userId(userId)
@@ -204,7 +205,7 @@ class CashServiceTest {
             Long userId = 99L;
             Currency currency = Currency.USD;
             CashTransactionType type = CashTransactionType.WITHDRAW;
-            Pageable pageable = PageRequest.of(0, 10);
+            Pageable pageable = PageRequest.of(0, 10, Sort.by("id").descending());
 
             CashTransactionEntity tx = CashTransactionEntity.builder()
                     .userId(userId)

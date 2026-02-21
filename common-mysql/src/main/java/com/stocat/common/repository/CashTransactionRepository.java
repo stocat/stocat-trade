@@ -13,8 +13,7 @@ public interface CashTransactionRepository extends JpaRepository<CashTransaction
 
     @Query("SELECT c FROM CashTransactionEntity c " +
             "WHERE c.userId = :userId AND c.currency = :currency " +
-            "AND (:type IS NULL OR c.transactionType = :type) " +
-            "ORDER BY c.id DESC")
+            "AND (:type IS NULL OR c.transactionType = :type)")
     Page<CashTransactionEntity> findTransactions(
             @Param("userId") Long userId,
             @Param("currency") Currency currency,
