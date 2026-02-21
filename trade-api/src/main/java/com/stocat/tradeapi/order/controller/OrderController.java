@@ -3,11 +3,11 @@ package com.stocat.tradeapi.order.controller;
 import com.stocat.common.response.ApiResponse;
 import com.stocat.tradeapi.order.controller.dto.BuyOrderRequest;
 import com.stocat.tradeapi.order.controller.dto.OrderResponse;
-import com.stocat.tradeapi.order.service.OrderService;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
 import com.stocat.tradeapi.order.service.dto.command.OrderCancelCommand;
 import com.stocat.tradeapi.order.usecase.BuyOrderUsecase;
+import com.stocat.tradeapi.order.usecase.CancelOrderUsecase;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -29,7 +29,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class OrderController {
     private final BuyOrderUsecase buyOrderUsecase;
-    private final OrderService orderService;
+    private final CancelOrderUsecase cancelOrderUsecase;
 
     @PostMapping("/buy")
     @Operation(summary = "매수 주문 생성")
@@ -58,7 +58,7 @@ public class OrderController {
     ) {
         OrderCancelCommand command = new OrderCancelCommand(orderId, userId);
 
-        OrderDto order = orderService.cancelOrder(command);
+        OrderDto order = cancelOrderUsecase.cancelOrder(command);
         OrderResponse response = OrderResponse.from(order);
 
         return ResponseEntity.ok(ApiResponse.success(response));

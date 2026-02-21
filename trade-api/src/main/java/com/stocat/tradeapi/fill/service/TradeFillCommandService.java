@@ -19,7 +19,6 @@ public class TradeFillCommandService {
                 .orderId(command.orderId())
                 .userId(order.userId())
                 .assetId(command.assetId())
-                .exchangeRateId(command.exchangeRateId())
                 .realizedPnl(null)
                 .side(command.side())
                 .quantity(command.quantity())

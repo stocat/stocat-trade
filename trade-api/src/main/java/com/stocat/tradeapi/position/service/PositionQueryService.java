@@ -3,7 +3,7 @@ package com.stocat.tradeapi.position.service;
 import com.stocat.common.domain.position.PositionEntity;
 import com.stocat.common.exception.ApiException;
 import com.stocat.common.repository.PositionRepository;
-import com.stocat.tradeapi.position.exception.PositionErrorCode;
+import com.stocat.tradeapi.exception.TradeErrorCode;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class PositionQueryService {
     public PositionEntity getPositionById(Long id) {
         return positionRepository
                 .findById(id)
-                .orElseThrow(() -> new ApiException(PositionErrorCode.NOT_FOUND_USER_POSITION));
+                .orElseThrow(() -> new ApiException(TradeErrorCode.NOT_FOUND_USER_POSITION));
     }
 
     @Transactional(readOnly = true)
@@ -31,6 +31,11 @@ public class PositionQueryService {
     @Transactional(readOnly = true)
     public Optional<PositionEntity> getUserPosition(Long assetId, Long userId) {
         return positionRepository.findByAssetIdAndUserId(assetId, userId);
+    }
+
+    @Transactional
+    public Optional<PositionEntity> getUserPositionForUpdate(Long assetId, Long userId) {
+        return positionRepository.findByAssetIdAndUserIdForUpdate(assetId, userId);
     }
 
     @Transactional

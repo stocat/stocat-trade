@@ -33,7 +33,7 @@ class PositionServiceTest {
     @Test
     void 포지션이_없으면_신규_생성한다() {
         PositionUpsertCommand command = new PositionUpsertCommand(1L, 10L, new BigDecimal("5.00"), new BigDecimal("100.00"));
-        when(positionQueryService.getUserPosition(command.assetId(), command.userId()))
+        when(positionQueryService.getUserPositionForUpdate(command.assetId(), command.userId()))
                 .thenReturn(Optional.empty());
 
         positionService.updateUserPosition(command);
@@ -51,7 +51,7 @@ class PositionServiceTest {
     @Test
     void 기존_포지션이면_수량을_증가시킨다() {
         PositionEntity existing = PositionEntity.create(1L, 10L, new BigDecimal("2.00"), new BigDecimal("50.00"));
-        when(positionQueryService.getUserPosition(10L, 1L)).thenReturn(Optional.of(existing));
+        when(positionQueryService.getUserPositionForUpdate(10L, 1L)).thenReturn(Optional.of(existing));
 
         PositionUpsertCommand addCommand = new PositionUpsertCommand(1L, 10L, new BigDecimal("3.00"), new BigDecimal("100.00"));
 
@@ -65,12 +65,12 @@ class PositionServiceTest {
     @Test
     void 수량이_0이면_예외가_발생한다() {
         PositionEntity existing = PositionEntity.create(2L, 11L, new BigDecimal("2.00"), new BigDecimal("70.00"));
-        when(positionQueryService.getUserPosition(11L, 2L)).thenReturn(Optional.of(existing));
+        when(positionQueryService.getUserPositionForUpdate(11L, 2L)).thenReturn(Optional.of(existing));
 
         PositionUpsertCommand invalidCommand = new PositionUpsertCommand(2L, 11L, BigDecimal.ZERO, new BigDecimal("70.00"));
 
         assertThrows(ApiException.class, () -> positionService.updateUserPosition(invalidCommand));
-        verify(positionQueryService).getUserPosition(11L, 2L);
+        verify(positionQueryService).getUserPositionForUpdate(11L, 2L);
         verifyNoMoreInteractions(positionQueryService);
     }
 }

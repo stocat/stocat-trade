@@ -5,6 +5,7 @@ import com.stocat.common.domain.Currency;
 import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
+import com.stocat.common.domain.order.OrderTif;
 import com.stocat.common.domain.order.OrderType;
 import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
@@ -16,6 +17,7 @@ public final class OrderFixtureUtils {
     private static final Long USER_ID = 1L;
     private static final Long ORDER_ID = 1000L;
     private static final Long ASSET_ID = 1L;
+    private static final Long CASH_HOLDING_ID = 10_000L;
 
     public static BuyOrderCommand createBuyOrderCommand() {
         return createBuyOrderCommand(createUsdAssetDto());
@@ -28,6 +30,7 @@ public final class OrderFixtureUtils {
                 .orderType(OrderType.LIMIT)
                 .price(BigDecimal.valueOf(200))
                 .quantity(BigDecimal.valueOf(100))
+                .tif(OrderTif.GTC)
                 .requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
                 .build();
     }
@@ -63,11 +66,13 @@ public final class OrderFixtureUtils {
                 .id(ORDER_ID)
                 .userId(USER_ID)
                 .assetId(ASSET_ID)
+                .cashHoldingId(CASH_HOLDING_ID)
                 .side(TradeSide.BUY)
                 .type(OrderType.LIMIT)
                 .status(status)
                 .quantity(BigDecimal.valueOf(100))
                 .price(BigDecimal.valueOf(200))
+                .tif(OrderTif.GTC)
                 .build();
     }
 
@@ -76,11 +81,13 @@ public final class OrderFixtureUtils {
                 .id(ORDER_ID)
                 .userId(command.userId())
                 .assetId(ASSET_ID)
+                .cashHoldingId(CASH_HOLDING_ID)
                 .side(TradeSide.BUY)
                 .type(command.orderType())
                 .status(OrderStatus.PENDING)
                 .quantity(command.quantity())
                 .price(command.price())
+                .tif(command.tif() != null ? command.tif() : OrderTif.GTC)
                 .build();
     }
 }

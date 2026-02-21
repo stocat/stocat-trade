@@ -2,7 +2,7 @@ package com.stocat.tradeapi.position.service;
 
 import com.stocat.common.domain.position.PositionEntity;
 import com.stocat.common.exception.ApiException;
-import com.stocat.tradeapi.position.exception.PositionErrorCode;
+import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.position.service.dto.PositionDto;
 import com.stocat.tradeapi.position.service.dto.command.GetPositionCommand;
 import com.stocat.tradeapi.position.service.dto.command.PositionUpsertCommand;
@@ -25,7 +25,7 @@ public class PositionService {
                 positionQueryService.getPositionById(command.positionId());
 
         if (!Objects.equals(userPosition.getUserId(), command.userId())) {
-            throw new ApiException(PositionErrorCode.NOT_USER_POSITION);
+            throw new ApiException(TradeErrorCode.NOT_USER_POSITION);
         }
 
         return PositionDto.from(userPosition);
@@ -45,7 +45,7 @@ public class PositionService {
 
     @Transactional
     public void updateUserPosition(PositionUpsertCommand command) {
-        Optional<PositionEntity> entity = positionQueryService.getUserPosition(command.assetId(), command.userId());
+        Optional<PositionEntity> entity = positionQueryService.getUserPositionForUpdate(command.assetId(), command.userId());
 
         if (entity.isEmpty()) {
             createNewPosition(command);
@@ -59,7 +59,7 @@ public class PositionService {
 
     private void createNewPosition(PositionUpsertCommand command) {
         if (command.quantity() == null || command.quantity().signum() <= 0) {
-            throw new ApiException(PositionErrorCode.POSITION_NOT_FOUND_FOR_SELL);
+            throw new ApiException(TradeErrorCode.POSITION_NOT_FOUND_FOR_SELL);
         }
         PositionEntity newEntity = PositionEntity.create(
                 command.userId(),
@@ -74,7 +74,7 @@ public class PositionService {
                                      BigDecimal quantityDelta,
                                      BigDecimal additionalAvgEntryPrice) {
         if (quantityDelta.signum() == 0) {
-            throw new ApiException(PositionErrorCode.INVALID_POSITION_QUANTITY);
+            throw new ApiException(TradeErrorCode.INVALID_POSITION_QUANTITY);
         }
 
         if (quantityDelta.signum() > 0) {

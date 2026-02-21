@@ -19,6 +19,7 @@ public enum ErrorDomain {
     TRADE_WS(30_000),
     ASSET_SCRAPER(40_000),
     POSITION_API(50_000),
+    CASH_API(60_000),
     COMMON(90_000);
 
     private final int offset;
