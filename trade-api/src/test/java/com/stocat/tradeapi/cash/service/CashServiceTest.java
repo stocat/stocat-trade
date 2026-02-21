@@ -3,6 +3,7 @@ package com.stocat.tradeapi.cash.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.stocat.common.domain.Currency;
@@ -49,7 +50,7 @@ class CashServiceTest {
 
     @BeforeEach
     void setUp() {
-        CashCommandService commandService = new CashCommandService(cashHoldingRepository);
+        CashCommandService commandService = new CashCommandService(cashHoldingRepository, cashTransactionRepository);
         CashQueryService queryService = new CashQueryService(
                 cashBalanceRepository,
                 cashHoldingRepository,
@@ -116,10 +117,11 @@ class CashServiceTest {
     class ConsumeHolding {
 
         @Test
-        void 홀딩을_소진하면_전체_잔액과_예약_잔액을_차감한다() {
+        void 홀딩을_소진하면_잔액을_차감하고_이력을_기록한다() {
             // Given: 미리 300원이 예약된 상태
-            balance.reserve(BigDecimal.valueOf(300));
-            CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), BigDecimal.valueOf(300));
+            BigDecimal amount = BigDecimal.valueOf(300);
+            balance.reserve(amount);
+            CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), amount);
 
             when(cashHoldingRepository.findByIdForUpdate(123L)).thenReturn(Optional.of(holding));
             when(cashBalanceRepository.findByIdForUpdate(balance.getId())).thenReturn(Optional.of(balance));
@@ -130,6 +132,8 @@ class CashServiceTest {
             // Then: 전체 잔액 1000 -> 700, 예약금 300 -> 0
             assertThat(balance.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(700));
             assertThat(balance.getReservedBalance()).isEqualByComparingTo(BigDecimal.ZERO);
+
+            verify(cashTransactionRepository).save(any(CashTransactionEntity.class));
         }
 
         @Test

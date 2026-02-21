@@ -45,4 +45,20 @@ public class CashTransactionEntity extends BaseEntity {
 
     @Column(name = "balance_after", nullable = false)
     private BigDecimal balanceAfter;
+
+    public static CashTransactionEntity create(
+            Long userId,
+            com.stocat.common.domain.Currency currency,
+            BigDecimal amount,
+            BigDecimal balanceAfter,
+            CashTransactionType transactionType
+    ) {
+        return CashTransactionEntity.builder()
+                .userId(userId)
+                .currency(currency)
+                .amount(amount)
+                .balanceAfter(balanceAfter)
+                .transactionType(transactionType)
+                .build();
+    }
 }
