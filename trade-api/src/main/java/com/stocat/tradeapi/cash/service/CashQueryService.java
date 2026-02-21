@@ -31,16 +31,19 @@ public class CashQueryService {
                 .orElseThrow(() -> new ApiException(TradeErrorCode.CASH_BALANCE_NOT_FOUND));
     }
 
+    @Transactional
     public CashBalanceEntity getBalanceForUpdate(Long balanceId) {
         return cashBalanceRepository.findByIdForUpdate(balanceId)
                 .orElseThrow(() -> new ApiException(TradeErrorCode.CASH_BALANCE_NOT_FOUND));
     }
 
+    @Transactional
     public CashBalanceEntity getBalanceForUpdate(Long userId, Currency currency) {
         return cashBalanceRepository.findByUserIdAndCurrencyForUpdate(userId, currency)
                 .orElseThrow(() -> new ApiException(TradeErrorCode.CASH_BALANCE_NOT_FOUND));
     }
 
+    @Transactional
     public CashHoldingEntity getHoldingForUpdate(Long id) {
         if (id == null) {
             throw new ApiException(TradeErrorCode.CASH_HOLDING_NOT_FOUND);

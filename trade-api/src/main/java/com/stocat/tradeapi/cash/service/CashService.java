@@ -12,20 +12,24 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional
 public class CashService {
 
     private final CashCommandService cashCommandService;
     private final CashQueryService cashQueryService;
 
+    @Transactional
     public CashHoldingEntity createCashHolding(CreateCashHoldingCommand command) {
         CashBalanceEntity balance = cashQueryService.getBalanceForUpdate(command.userId(), command.currency());
 
         return cashCommandService.createCashHolding(balance, command.amount());
     }
 
+    @Transactional
     public void consumeHoldingAndWithdraw(Long cashHoldingId) {
         CashHoldingEntity holding = cashQueryService.getHoldingForUpdate(cashHoldingId);
         CashBalanceEntity balance = cashQueryService.getBalanceForUpdate(holding.getCashBalanceId());
