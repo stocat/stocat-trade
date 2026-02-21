@@ -33,7 +33,8 @@ public class CashService {
             throw new ApiException(TradeErrorCode.INSUFFICIENT_CASH_BALANCE);
         }
 
-        return CashHoldingEntity.hold(balance.getId(), command.amount());
+        CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), command.amount());
+        return cashHoldingRepository.save(holding);
     }
 
     @Transactional
