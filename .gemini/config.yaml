@@ -1,0 +1,24 @@
+# .gemini/config.yaml
+
+have_fun: false # PR 요약에 시(poem) 등을 포함하는 기능. (공적인 프로젝트라면 false 권장)
+ignore_patterns:
+  - "*/build/*"
+  - "*/out/*"
+  - "*/target/*"
+  - "*.jar"
+  - "*.class"
+  # MSA 멀티 모듈 환경에서 빌드 결과물이나 불필요한 바이너리 파일은 리뷰 대상에서 제외합니다.
+
+memory_config:
+  disabled: false # 영구 메모리를 활성화하여 프로젝트의 컨텍스트를 기억하고 리뷰 품질을 높입니다.
+
+code_review:
+  disable: false # 코드 리뷰 기능 활성화
+  comment_severity_threshold: LOW # 사소한 개선점(LOW)부터 치명적인 결함(CRITICAL)까지 모두 코멘트를 남기도록 설정하여 최대한 많은 피드백을 받습니다.
+  max_review_comments: -1 # 리뷰 코멘트 개수 제한 없음
+
+pull_request_opened:
+  help: true # PR이 열릴 때 프로젝트에 도움이 되는 안내 메시지 활성화
+  summary: true # [요청 사항 반영] PR이 열리면 변경 사항에 대한 요약을 자동으로 작성합니다.
+  code_review: true # [요청 사항 반영] PR이 열리면 즉시 코드 리뷰를 자동으로 시작합니다.
+  include_drafts: true # Draft PR 단계에서도 에이전트가 동작하여 미리 피드백을 받을 수 있게 합니다.
