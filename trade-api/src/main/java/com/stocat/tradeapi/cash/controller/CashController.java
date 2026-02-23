@@ -4,10 +4,11 @@ import com.stocat.common.domain.Currency;
 import com.stocat.common.domain.cash.CashTransactionType;
 import com.stocat.common.response.ApiResponse;
 import com.stocat.tradeapi.cash.controller.dto.CashBalanceResponse;
-import com.stocat.tradeapi.cash.controller.dto.CashTransactionHistoryResponse;
+import com.stocat.tradeapi.cash.controller.dto.CashTransactionHistoryItemResponse;
 import com.stocat.tradeapi.cash.service.CashService;
 import com.stocat.tradeapi.cash.service.dto.CashBalanceDto;
-import com.stocat.tradeapi.cash.service.dto.CashTransactionHistoryDto;
+import com.stocat.tradeapi.cash.service.dto.CashTransactionDto;
+import com.stocat.tradeapi.common.dto.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
@@ -16,6 +17,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -51,7 +53,7 @@ public class CashController {
 
     @GetMapping("/history")
     @Operation(summary = "현금 입출금 내역 조회", description = "입금/출금 기록을 최신순으로 조회합니다.")
-    public ResponseEntity<ApiResponse<CashTransactionHistoryResponse>> getCashHistory(
+    public ResponseEntity<ApiResponse<PageResponse<CashTransactionHistoryItemResponse>>> getCashHistory(
             @Positive @RequestHeader("X-MEMBER-ID") Long userId,
             @NotNull @RequestParam("currency") Currency currency,
             @RequestParam(value = "transactionType", required = false) CashTransactionType transactionType,
@@ -59,9 +61,11 @@ public class CashController {
             @Min(1) @Max(100) @RequestParam(value = "size", defaultValue = "20") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        CashTransactionHistoryDto history = cashService.getCashTransactions(userId, currency, transactionType,
+        Page<CashTransactionDto> history = cashService.getCashTransactions(userId, currency, transactionType,
                 pageable);
-        CashTransactionHistoryResponse response = CashTransactionHistoryResponse.from(history);
+        PageResponse<CashTransactionHistoryItemResponse> response = new PageResponse<>(
+                history.map(CashTransactionHistoryItemResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

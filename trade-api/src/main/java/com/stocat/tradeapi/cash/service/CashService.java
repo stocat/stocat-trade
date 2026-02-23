@@ -5,7 +5,7 @@ import com.stocat.common.domain.cash.CashBalanceEntity;
 import com.stocat.common.domain.cash.CashTransactionEntity;
 import com.stocat.common.domain.cash.CashTransactionType;
 import com.stocat.tradeapi.cash.service.dto.CashBalanceDto;
-import com.stocat.tradeapi.cash.service.dto.CashTransactionHistoryDto;
+import com.stocat.tradeapi.cash.service.dto.CashTransactionDto;
 import com.stocat.tradeapi.cash.service.dto.command.CreateCashHoldingCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,14 +38,14 @@ public class CashService {
         return CashBalanceDto.from(balance);
     }
 
-    public CashTransactionHistoryDto getCashTransactions(
+    public Page<CashTransactionDto> getCashTransactions(
             Long userId,
             Currency currency,
             CashTransactionType transactionType,
             Pageable pageable
     ) {
-        Page<CashTransactionEntity> histories = cashQueryService
+        Page<CashTransactionEntity> transactions = cashQueryService
                 .getCashTransactions(userId, currency, transactionType, pageable);
-        return CashTransactionHistoryDto.from(histories);
+        return transactions.map(CashTransactionDto::from);
     }
 }
