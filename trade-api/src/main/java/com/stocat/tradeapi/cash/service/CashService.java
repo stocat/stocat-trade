@@ -2,7 +2,6 @@ package com.stocat.tradeapi.cash.service;
 
 import com.stocat.common.domain.Currency;
 import com.stocat.common.domain.cash.CashBalanceEntity;
-import com.stocat.common.domain.cash.CashHoldingEntity;
 import com.stocat.common.domain.cash.CashTransactionEntity;
 import com.stocat.common.domain.cash.CashTransactionType;
 import com.stocat.tradeapi.cash.service.dto.CashBalanceDto;
@@ -23,18 +22,15 @@ public class CashService {
     private final CashQueryService cashQueryService;
 
     @Transactional
-    public CashHoldingEntity createCashHolding(CreateCashHoldingCommand command) {
-        CashBalanceEntity balance = cashQueryService.getBalanceWithLock(command.userId(), command.currency());
+    public Long createCashHolding(CreateCashHoldingCommand command) {
+        Long cashBalanceId = cashQueryService.getBalanceId(command.userId(), command.currency());
 
-        return cashCommandService.createCashHolding(balance, command.amount());
+        return cashCommandService.createCashHolding(cashBalanceId, command.amount());
     }
 
     @Transactional
     public void consumeHoldingAndWithdraw(Long cashHoldingId) {
-        CashHoldingEntity holding = cashQueryService.getHoldingWithLock(cashHoldingId);
-        CashBalanceEntity balance = cashQueryService.getBalanceWithLock(holding.getCashBalanceId());
-
-        cashCommandService.consumeHolding(holding, balance);
+        cashCommandService.consumeHolding(cashHoldingId);
     }
 
     public CashBalanceDto getCashBalance(Long userId, Currency currency) {

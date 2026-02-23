@@ -10,7 +10,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.stocat.common.domain.cash.CashHoldingEntity;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.cash.service.CashService;
@@ -21,7 +20,6 @@ import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.service.OrderCommandService;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
-import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,11 +44,10 @@ class BuyOrderFacadeTest {
         // Given
         BuyOrderCommand command = createBuyOrderCommand();
         AssetDto asset = createUsdAssetDto();
-        CashHoldingEntity holding = CashHoldingEntity.hold(1L, BigDecimal.valueOf(1000));
         Order order = createBuyOrder(command);
 
-        given(cashService.createCashHolding(any(CreateCashHoldingCommand.class))).willReturn(holding);
-        given(orderCommandService.createBuyOrder(command, asset, holding.getId())).willReturn(order);
+        given(cashService.createCashHolding(any(CreateCashHoldingCommand.class))).willReturn(1L);
+        given(orderCommandService.createBuyOrder(command, asset, 1L)).willReturn(order);
 
         // When
         OrderDto result = buyOrderFacade.processBuyOrder(command, asset);
@@ -58,7 +55,7 @@ class BuyOrderFacadeTest {
         // Then
         assertThat(result.id()).isEqualTo(order.getId());
         verify(cashService).createCashHolding(any(CreateCashHoldingCommand.class));
-        verify(orderCommandService).createBuyOrder(command, asset, holding.getId());
+        verify(orderCommandService).createBuyOrder(command, asset, 1L);
     }
 
     @Test
@@ -66,10 +63,9 @@ class BuyOrderFacadeTest {
         // Given
         BuyOrderCommand command = createBuyOrderCommand();
         AssetDto asset = createUsdAssetDto();
-        CashHoldingEntity holding = CashHoldingEntity.hold(1L, BigDecimal.valueOf(1000));
         Order order = createBuyOrder(command);
 
-        given(cashService.createCashHolding(any())).willReturn(holding);
+        given(cashService.createCashHolding(any())).willReturn(1L);
         given(orderCommandService.createBuyOrder(any(), any(), any())).willReturn(order);
 
         // When

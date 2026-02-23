@@ -5,6 +5,7 @@ import com.stocat.common.domain.cash.CashHoldingEntity;
 import com.stocat.common.domain.cash.CashTransactionEntity;
 import com.stocat.common.domain.cash.CashTransactionType;
 import com.stocat.common.exception.ApiException;
+import com.stocat.common.repository.CashBalanceRepository;
 import com.stocat.common.repository.CashHoldingRepository;
 import com.stocat.common.repository.CashTransactionRepository;
 import com.stocat.tradeapi.exception.TradeErrorCode;
@@ -18,21 +19,27 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class CashCommandService {
 
+    private final CashBalanceRepository cashBalanceRepository;
     private final CashHoldingRepository cashHoldingRepository;
     private final CashTransactionRepository cashTransactionRepository;
 
-    public CashHoldingEntity createCashHolding(CashBalanceEntity balance, BigDecimal amount) {
+    public Long createCashHolding(Long cashBalanceId, BigDecimal amount) {
         validateAmount(amount);
+
+        CashBalanceEntity balance = getBalanceForUpdate(cashBalanceId);
 
         try {
             balance.reserve(amount);
         } catch (IllegalStateException ex) {
             throw new ApiException(TradeErrorCode.INSUFFICIENT_CASH_BALANCE);
         }
-        return cashHoldingRepository.save(CashHoldingEntity.hold(balance.getId(), amount));
+        CashHoldingEntity holding = cashHoldingRepository.save(CashHoldingEntity.hold(balance.getId(), amount));
+        return holding.getId();
     }
 
-    public void consumeHolding(CashHoldingEntity holding, CashBalanceEntity balance) {
+    public void consumeHolding(Long holdingId) {
+        CashHoldingEntity holding = getHoldingForUpdate(holdingId);
+        CashBalanceEntity balance = getBalanceForUpdate(holding.getCashBalanceId());
         try {
             holding.consume();
         } catch (IllegalStateException ex) {
@@ -62,5 +69,15 @@ public class CashCommandService {
         if (amount == null || amount.signum() <= 0) {
             throw new ApiException(TradeErrorCode.INVALID_CASH_AMOUNT);
         }
+    }
+
+    private CashBalanceEntity getBalanceForUpdate(Long cashBalanceId) {
+        return cashBalanceRepository.findByIdForUpdate(cashBalanceId)
+                .orElseThrow(() -> new ApiException(TradeErrorCode.CASH_BALANCE_NOT_FOUND));
+    }
+
+    private CashHoldingEntity getHoldingForUpdate(Long holdingId) {
+        return cashHoldingRepository.findByIdForUpdate(holdingId)
+                .orElseThrow(() -> new ApiException(TradeErrorCode.CASH_HOLDING_NOT_FOUND));
     }
 }

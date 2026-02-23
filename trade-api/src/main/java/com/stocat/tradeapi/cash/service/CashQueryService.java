@@ -31,6 +31,10 @@ public class CashQueryService {
                 .orElseThrow(() -> new ApiException(TradeErrorCode.CASH_BALANCE_NOT_FOUND));
     }
 
+    public Long getBalanceId(Long userId, Currency currency) {
+        return getCashBalance(userId, currency).getId();
+    }
+
     @Transactional
     public CashBalanceEntity getBalanceWithLock(Long balanceId) {
         return cashBalanceRepository.findByIdForUpdate(balanceId)

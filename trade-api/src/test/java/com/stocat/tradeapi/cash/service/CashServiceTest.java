@@ -33,6 +33,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class CashServiceTest {
@@ -50,7 +51,11 @@ class CashServiceTest {
 
     @BeforeEach
     void setUp() {
-        CashCommandService commandService = new CashCommandService(cashHoldingRepository, cashTransactionRepository);
+        CashCommandService commandService = new CashCommandService(
+                cashBalanceRepository,
+                cashHoldingRepository,
+                cashTransactionRepository
+        );
         CashQueryService queryService = new CashQueryService(
                 cashBalanceRepository,
                 cashHoldingRepository,
@@ -74,23 +79,30 @@ class CashServiceTest {
         @Test
         void 잔액이_충분하면_홀딩을_생성한다() {
             CreateCashHoldingCommand command = new CreateCashHoldingCommand(99L, Currency.USD, BigDecimal.valueOf(100));
-            when(cashBalanceRepository.findByUserIdAndCurrencyForUpdate(99L, Currency.USD))
+            when(cashBalanceRepository.findByUserIdAndCurrency(99L, Currency.USD))
+                    .thenReturn(Optional.of(balance));
+            when(cashBalanceRepository.findByIdForUpdate(balance.getId()))
                     .thenReturn(Optional.of(balance));
             when(cashHoldingRepository.save(any(CashHoldingEntity.class)))
-                    .thenAnswer(invocation -> invocation.getArgument(0));
+                    .thenAnswer(invocation -> {
+                        CashHoldingEntity saved = invocation.getArgument(0);
+                        ReflectionTestUtils.setField(saved, "id", 10L);
+                        return saved;
+                    });
 
-            CashHoldingEntity result = cashService.createCashHolding(command);
+            Long holdingId = cashService.createCashHolding(command);
 
+            assertThat(holdingId).isEqualTo(10L);
             assertThat(balance.getReservedBalance()).isEqualByComparingTo(BigDecimal.valueOf(100));
-            assertThat(result.getAmount()).isEqualByComparingTo(BigDecimal.valueOf(100));
-            assertThat(result.getCashBalanceId()).isEqualTo(balance.getId());
         }
 
         @Test
         void 잔액이_부족하면_예외를_던진다() {
             CreateCashHoldingCommand command = new CreateCashHoldingCommand(99L, Currency.USD,
                     BigDecimal.valueOf(1_500));
-            when(cashBalanceRepository.findByUserIdAndCurrencyForUpdate(99L, Currency.USD))
+            when(cashBalanceRepository.findByUserIdAndCurrency(99L, Currency.USD))
+                    .thenReturn(Optional.of(balance));
+            when(cashBalanceRepository.findByIdForUpdate(balance.getId()))
                     .thenReturn(Optional.of(balance));
 
             assertThatThrownBy(() -> cashService.createCashHolding(command))
@@ -102,7 +114,7 @@ class CashServiceTest {
 
         @Test
         void 계좌_정보가_존재하지_않으면_예외가_발생한다() {
-            when(cashBalanceRepository.findByUserIdAndCurrencyForUpdate(99L, Currency.USD))
+            when(cashBalanceRepository.findByUserIdAndCurrency(99L, Currency.USD))
                     .thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> cashService.createCashHolding(
