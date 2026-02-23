@@ -24,15 +24,15 @@ public class CashService {
 
     @Transactional
     public CashHoldingEntity createCashHolding(CreateCashHoldingCommand command) {
-        CashBalanceEntity balance = cashQueryService.getBalanceForUpdate(command.userId(), command.currency());
+        CashBalanceEntity balance = cashQueryService.getBalanceWithLock(command.userId(), command.currency());
 
         return cashCommandService.createCashHolding(balance, command.amount());
     }
 
     @Transactional
     public void consumeHoldingAndWithdraw(Long cashHoldingId) {
-        CashHoldingEntity holding = cashQueryService.getHoldingForUpdate(cashHoldingId);
-        CashBalanceEntity balance = cashQueryService.getBalanceForUpdate(holding.getCashBalanceId());
+        CashHoldingEntity holding = cashQueryService.getHoldingWithLock(cashHoldingId);
+        CashBalanceEntity balance = cashQueryService.getBalanceWithLock(holding.getCashBalanceId());
 
         cashCommandService.consumeHolding(holding, balance);
     }
