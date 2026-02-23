@@ -2,6 +2,7 @@ package com.stocat.tradeapi.cash.service;
 
 import com.stocat.common.domain.cash.CashBalanceEntity;
 import com.stocat.common.domain.cash.CashHoldingEntity;
+import com.stocat.common.domain.cash.CashHoldingStatus;
 import com.stocat.common.domain.cash.CashTransactionEntity;
 import com.stocat.common.domain.cash.CashTransactionType;
 import com.stocat.common.exception.ApiException;
@@ -27,12 +28,8 @@ public class CashCommandService {
         validateAmount(amount);
 
         CashBalanceEntity balance = getBalanceForUpdate(cashBalanceId);
+        balance.reserve(amount);
 
-        try {
-            balance.reserve(amount);
-        } catch (IllegalStateException ex) {
-            throw new ApiException(TradeErrorCode.INSUFFICIENT_CASH_BALANCE);
-        }
         CashHoldingEntity holding = cashHoldingRepository.save(CashHoldingEntity.hold(balance.getId(), amount));
         return holding.getId();
     }
@@ -40,17 +37,18 @@ public class CashCommandService {
     public void consumeHolding(Long holdingId) {
         CashHoldingEntity holding = getHoldingForUpdate(holdingId);
         CashBalanceEntity balance = getBalanceForUpdate(holding.getCashBalanceId());
-        try {
-            holding.consume();
-        } catch (IllegalStateException ex) {
-            throw new ApiException(TradeErrorCode.CASH_HOLDING_ALREADY_FINALIZED, ex);
-        }
-        try {
-            balance.settleReservedAmount(holding.getAmount());
-        } catch (IllegalStateException ex) {
-            throw new ApiException(TradeErrorCode.INSUFFICIENT_CASH_BALANCE, ex);
-        }
 
+        if (holding.getStatus() != CashHoldingStatus.HOLD) {
+            throw new ApiException(TradeErrorCode.CASH_HOLDING_ALREADY_FINALIZED);
+        }
+        holding.consume();
+
+        validateAmount(holding.getAmount());
+        validateAmount(balance.getBalance());
+        if (balance.getReservedBalance().compareTo(holding.getAmount()) < 0) {
+            throw new ApiException(TradeErrorCode.INSUFFICIENT_CASH_BALANCE);
+        }
+        balance.settleReservedAmount(holding.getAmount());
         saveTransactionHistory(balance, holding.getAmount(), CashTransactionType.WITHDRAW);
     }
 
