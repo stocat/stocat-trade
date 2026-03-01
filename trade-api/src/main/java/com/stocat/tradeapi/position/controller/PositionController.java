@@ -40,7 +40,7 @@ public class PositionController {
     @GetMapping("/{positionId}")
     public ResponseEntity<ApiResponse<PositionResponse>> getPosition(
             @Positive @PathVariable Long positionId,
-            @Positive @RequestHeader("X-USER-ID") Long userId) {
+            @Positive @RequestHeader("X-MEMBER-ID") Long userId) {
         GetPositionCommand command = GetPositionCommand.from(positionId, userId);
         PositionDto position = positionService.getPositionById(command);
 
@@ -52,7 +52,7 @@ public class PositionController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "포지션 조회 성공")
     @GetMapping()
     public ResponseEntity<ApiResponse<List<PositionResponse>>> getUserPositions(
-            @Positive @RequestHeader("X-USER-ID") Long userId) {
+            @Positive @RequestHeader("X-MEMBER-ID") Long userId) {
         List<PositionDto> userPositions = positionService.getUserPositions(userId);
 
         List<PositionResponse> response = userPositions.stream()

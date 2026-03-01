@@ -11,6 +11,7 @@ import com.stocat.tradeapi.order.usecase.CancelOrderUsecase;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -20,8 +21,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.LocalDateTime;
 
 @Validated
 @RestController
@@ -36,7 +35,7 @@ public class OrderController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "매수 주문 생성 성공")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "현금 부족, 장 마감 등")
     public ResponseEntity<ApiResponse<OrderResponse>> placeBuyOrder(
-            @RequestHeader("X-USER-ID") Long userId,
+            @RequestHeader("X-MEMBER-ID") Long userId,
             @Valid @RequestBody BuyOrderRequest request
     ) {
         LocalDateTime now = LocalDateTime.now();
@@ -52,7 +51,7 @@ public class OrderController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "주문 취소 성공")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "취소할 수 없는 거래 (이미 체결됨 등)")
     public ResponseEntity<ApiResponse<OrderResponse>> cancelOrder(
-            @RequestHeader("X-USER-ID") Long userId,
+            @RequestHeader("X-MEMBER-ID") Long userId,
             @PathVariable @Positive Long orderId
 
     ) {

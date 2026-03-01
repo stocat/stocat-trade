@@ -1,6 +1,5 @@
 package com.stocat.tradeapi.order.usecase;
 
-import com.stocat.common.domain.cash.CashHoldingEntity;
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.cash.service.CashService;
@@ -22,12 +21,12 @@ public class BuyOrderFacade {
 
     @Transactional
     public OrderDto processBuyOrder(BuyOrderCommand command, AssetDto asset) {
-        CashHoldingEntity holding = holdCash(asset, command);
-        Order order = orderCommandService.createBuyOrder(command, asset, holding.getId());
+        Long holdingId = holdCash(asset, command);
+        Order order = orderCommandService.createBuyOrder(command, asset, holdingId);
         return OrderDto.from(order);
     }
 
-    private CashHoldingEntity holdCash(AssetDto asset, BuyOrderCommand command) {
+    private Long holdCash(AssetDto asset, BuyOrderCommand command) {
         if (asset.currency() == null || command.price() == null) {
             throw new ApiException(TradeErrorCode.INTERNAL_ERROR);
         }

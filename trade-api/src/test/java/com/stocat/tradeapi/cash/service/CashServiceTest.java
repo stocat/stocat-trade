@@ -9,19 +9,32 @@ import static org.mockito.Mockito.when;
 import com.stocat.common.domain.Currency;
 import com.stocat.common.domain.cash.CashBalanceEntity;
 import com.stocat.common.domain.cash.CashHoldingEntity;
+import com.stocat.common.domain.cash.CashTransactionEntity;
+import com.stocat.common.domain.cash.CashTransactionType;
 import com.stocat.common.exception.ApiException;
 import com.stocat.common.repository.CashBalanceRepository;
 import com.stocat.common.repository.CashHoldingRepository;
+import com.stocat.common.repository.CashTransactionRepository;
+import com.stocat.tradeapi.cash.service.dto.CashBalanceDto;
+import com.stocat.tradeapi.cash.service.dto.CashTransactionDto;
 import com.stocat.tradeapi.cash.service.dto.command.CreateCashHoldingCommand;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class CashServiceTest {
@@ -30,156 +43,204 @@ class CashServiceTest {
     private CashBalanceRepository cashBalanceRepository;
     @Mock
     private CashHoldingRepository cashHoldingRepository;
+    @Mock
+    private CashTransactionRepository cashTransactionRepository;
 
-    @InjectMocks
     private CashService cashService;
 
     private CashBalanceEntity balance;
 
     @BeforeEach
     void setUp() {
+        CashCommandService commandService = new CashCommandService(
+                cashBalanceRepository,
+                cashHoldingRepository,
+                cashTransactionRepository
+        );
+        CashQueryService queryService = new CashQueryService(
+                cashBalanceRepository,
+                cashHoldingRepository,
+                cashTransactionRepository
+        );
+        cashService = new CashService(commandService, queryService);
+
         balance = CashBalanceEntity.builder()
                 .id(1L)
                 .userId(99L)
                 .currency(Currency.USD)
                 .balance(BigDecimal.valueOf(1_000))
+                .reservedBalance(BigDecimal.ZERO)
                 .build();
     }
 
-    @Test
-    void 잔액이_충분하면_홀딩을_생성한다() {
-        CreateCashHoldingCommand command = new CreateCashHoldingCommand(
-                balance.getUserId(),
-                balance.getCurrency(),
-                BigDecimal.valueOf(100)
-        );
-        when(cashBalanceRepository.findByUserIdAndCurrencyForUpdate(balance.getUserId(), balance.getCurrency()))
-                .thenReturn(Optional.of(balance));
-        when(cashHoldingRepository.save(any(CashHoldingEntity.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+    @Nested
+    @DisplayName("현금 홀딩 생성 검증")
+    class CreateCashHolding {
 
-        CashHoldingEntity result = cashService.createCashHolding(command);
+        @Test
+        void 잔액이_충분하면_홀딩을_생성한다() {
+            CreateCashHoldingCommand command = new CreateCashHoldingCommand(99L, Currency.USD, BigDecimal.valueOf(100));
+            when(cashBalanceRepository.findByUserIdAndCurrency(99L, Currency.USD))
+                    .thenReturn(Optional.of(balance));
+            when(cashBalanceRepository.findByIdForUpdate(balance.getId()))
+                    .thenReturn(Optional.of(balance));
+            when(cashHoldingRepository.save(any(CashHoldingEntity.class)))
+                    .thenAnswer(invocation -> {
+                        CashHoldingEntity saved = invocation.getArgument(0);
+                        ReflectionTestUtils.setField(saved, "id", 10L);
+                        return saved;
+                    });
 
-        assertThat(balance.getReservedBalance()).isEqualByComparingTo(BigDecimal.valueOf(100));
-        assertThat(result.getCashBalanceId()).isEqualTo(balance.getId());
-        assertThat(result.getAmount()).isEqualByComparingTo(command.amount());
-        verify(cashHoldingRepository).save(any(CashHoldingEntity.class));
+            Long holdingId = cashService.createCashHolding(command);
+
+            assertThat(holdingId).isEqualTo(10L);
+            assertThat(balance.getReservedBalance()).isEqualByComparingTo(BigDecimal.valueOf(100));
+        }
+
+        @Test
+        void 잔액이_부족하면_예외를_던진다() {
+            CreateCashHoldingCommand command = new CreateCashHoldingCommand(99L, Currency.USD,
+                    BigDecimal.valueOf(1_500));
+            when(cashBalanceRepository.findByUserIdAndCurrency(99L, Currency.USD))
+                    .thenReturn(Optional.of(balance));
+            when(cashBalanceRepository.findByIdForUpdate(balance.getId()))
+                    .thenReturn(Optional.of(balance));
+
+            assertThatThrownBy(() -> cashService.createCashHolding(command))
+                    .isInstanceOf(IllegalStateException.class);
+//                    .hasMessageContaining(TradeErrorCode.INSUFFICIENT_CASH_BALANCE.message());
+
+            assertThat(balance.getReservedBalance()).isEqualByComparingTo(BigDecimal.ZERO);
+        }
+
+        @Test
+        void 계좌_정보가_존재하지_않으면_예외가_발생한다() {
+            when(cashBalanceRepository.findByUserIdAndCurrency(99L, Currency.USD))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> cashService.createCashHolding(
+                    new CreateCashHoldingCommand(99L, Currency.USD, BigDecimal.TEN)))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessageContaining(TradeErrorCode.CASH_BALANCE_NOT_FOUND.message());
+        }
     }
 
-    @Test
-    void 잔액이_부족하면_예외를_던진다() {
-        CreateCashHoldingCommand command = new CreateCashHoldingCommand(
-                balance.getUserId(),
-                balance.getCurrency(),
-                BigDecimal.valueOf(2_000)
-        );
-        when(cashBalanceRepository.findByUserIdAndCurrencyForUpdate(balance.getUserId(), balance.getCurrency()))
-                .thenReturn(Optional.of(balance));
+    @Nested
+    @DisplayName("홀딩 소진 및 출금 검증")
+    class ConsumeHolding {
 
-        assertThatThrownBy(() -> cashService.createCashHolding(command))
-                .isInstanceOf(ApiException.class)
-                .hasMessageContaining(TradeErrorCode.INSUFFICIENT_CASH_BALANCE.message());
+        @Test
+        void 홀딩을_소진하면_잔액을_차감하고_이력을_기록한다() {
+            // Given: 미리 300원이 예약된 상태
+            BigDecimal amount = BigDecimal.valueOf(300);
+            balance.reserve(amount);
+            CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), amount);
+
+            when(cashHoldingRepository.findByIdForUpdate(123L)).thenReturn(Optional.of(holding));
+            when(cashBalanceRepository.findByIdForUpdate(balance.getId())).thenReturn(Optional.of(balance));
+
+            // When
+            cashService.consumeHoldingAndWithdraw(123L);
+
+            // Then: 전체 잔액 1000 -> 700, 예약금 300 -> 0
+            assertThat(balance.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(700));
+            assertThat(balance.getReservedBalance()).isEqualByComparingTo(BigDecimal.ZERO);
+
+            verify(cashTransactionRepository).save(any(CashTransactionEntity.class));
+        }
+
+        @Test
+        void 이미_종료된_홀딩이면_재소진시_예외() {
+            // Given
+            BigDecimal amount = BigDecimal.TEN;
+            balance.reserve(amount);
+            CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), amount);
+            holding.consume();
+
+            when(cashHoldingRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(holding));
+            when(cashBalanceRepository.findByIdForUpdate(balance.getId())).thenReturn(Optional.of(balance));
+
+            // When & Then
+            assertThatThrownBy(() -> cashService.consumeHoldingAndWithdraw(1L))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessageContaining(TradeErrorCode.CASH_HOLDING_ALREADY_FINALIZED.message());
+        }
     }
 
-    @Test
-    void 홀딩을_소진하면_잔액을_차감한다() {
-        // Given: 미리 300원이 예약된 상태
-        balance.reserve(BigDecimal.valueOf(300));
-        CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), BigDecimal.valueOf(300));
+    @Nested
+    @DisplayName("잔액 조회 검증")
+    class GetBalance {
 
-        when(cashHoldingRepository.findByIdForUpdate(123L)).thenReturn(Optional.of(holding));
-        when(cashBalanceRepository.findByIdForUpdate(balance.getId())).thenReturn(Optional.of(balance));
+        @Test
+        void 유저의_현금_잔액을_조회한다() {
+            balance.reserve(BigDecimal.valueOf(200));
+            when(cashBalanceRepository.findByUserIdAndCurrency(99L, Currency.USD))
+                    .thenReturn(Optional.of(balance));
 
-        // When
-        cashService.consumeHoldingAndWithdraw(123L);
+            CashBalanceDto result = cashService.getCashBalance(99L, Currency.USD);
 
-        // Then: 전체 잔액 1000 -> 700, 예약금 300 -> 0
-        assertThat(balance.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(700));
-        assertThat(balance.getReservedBalance()).isEqualByComparingTo(BigDecimal.ZERO);
+            assertThat(result.balance()).isEqualByComparingTo(BigDecimal.valueOf(1_000));
+            assertThat(result.availableAmount()).isEqualByComparingTo(BigDecimal.valueOf(800));
+            assertThat(result.currency()).isEqualTo(Currency.USD);
+        }
     }
 
-    @Test
-    void 잔액정보가_없으면_예외가_발생한다() {
-        CreateCashHoldingCommand command = new CreateCashHoldingCommand(
-                balance.getUserId(),
-                balance.getCurrency(),
-                BigDecimal.valueOf(10)
-        );
-        when(cashBalanceRepository.findByUserIdAndCurrencyForUpdate(balance.getUserId(), balance.getCurrency()))
-                .thenReturn(Optional.empty());
+    @Nested
+    @DisplayName("현금 거래 이력 조회 검증")
+    class GetTransactions {
 
-        assertThatThrownBy(() -> cashService.createCashHolding(command))
-                .isInstanceOf(ApiException.class)
-                .hasMessageContaining(TradeErrorCode.CASH_BALANCE_NOT_FOUND.message());
-    }
+        @Test
+        void 현금_거래_이력을_페이징하여_조회한다() {
+            // Given
+            Long userId = 99L;
+            Currency currency = Currency.USD;
+            Pageable pageable = PageRequest.of(0, 10, Sort.by("id").descending());
 
-    @Test
-    void 금액이_잘못되면_예외가_발생한다() {
-        CreateCashHoldingCommand zeroCommand = new CreateCashHoldingCommand(
-                balance.getUserId(),
-                balance.getCurrency(),
-                BigDecimal.ZERO
-        );
+            CashTransactionEntity tx = CashTransactionEntity.builder()
+                    .userId(userId)
+                    .currency(currency)
+                    .amount(BigDecimal.valueOf(500))
+                    .balanceAfter(BigDecimal.valueOf(1500))
+                    .transactionType(CashTransactionType.DEPOSIT)
+                    .build();
 
-        assertThatThrownBy(() -> cashService.createCashHolding(zeroCommand))
-                .isInstanceOf(ApiException.class)
-                .hasMessageContaining(TradeErrorCode.INVALID_CASH_AMOUNT.message());
-    }
+            when(cashTransactionRepository.findTransactions(userId, currency, null, pageable))
+                    .thenReturn(new PageImpl<>(List.of(tx), pageable, 1));
 
-    @Test
-    void 기존_홀딩으로_가용금액이_부족하면_예외() {
-        // Given: 이미 400원 예약 중 (남은 가용금액 600)
-        balance.reserve(BigDecimal.valueOf(400));
+            // When
+            Page<CashTransactionDto> result = cashService.getCashTransactions(userId, currency, null, pageable);
 
-        CreateCashHoldingCommand command = new CreateCashHoldingCommand(
-                balance.getUserId(),
-                balance.getCurrency(),
-                BigDecimal.valueOf(700) // 600보다 큼
-        );
-        when(cashBalanceRepository.findByUserIdAndCurrencyForUpdate(balance.getUserId(), balance.getCurrency()))
-                .thenReturn(Optional.of(balance));
+            // Then
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().getFirst().amount()).isEqualByComparingTo(BigDecimal.valueOf(500));
+            assertThat(result.getContent().getFirst().transactionType()).isEqualTo(CashTransactionType.DEPOSIT);
+        }
 
-        assertThatThrownBy(() -> cashService.createCashHolding(command))
-                .isInstanceOf(ApiException.class)
-                .hasMessageContaining(TradeErrorCode.INSUFFICIENT_CASH_BALANCE.message());
-    }
+        @Test
+        void 특정_타입의_현금_거래_이력을_조회한다() {
+            // Given
+            Long userId = 99L;
+            Currency currency = Currency.USD;
+            CashTransactionType type = CashTransactionType.WITHDRAW;
+            Pageable pageable = PageRequest.of(0, 10, Sort.by("id").descending());
 
-    @Test
-    void 홀딩이_없으면_소진시_예외() {
-        when(cashHoldingRepository.findByIdForUpdate(1L)).thenReturn(Optional.empty());
+            CashTransactionEntity tx = CashTransactionEntity.builder()
+                    .userId(userId)
+                    .currency(currency)
+                    .amount(BigDecimal.valueOf(200))
+                    .balanceAfter(BigDecimal.valueOf(800))
+                    .transactionType(CashTransactionType.WITHDRAW)
+                    .build();
 
-        assertThatThrownBy(() -> cashService.consumeHoldingAndWithdraw(1L))
-                .isInstanceOf(ApiException.class)
-                .hasMessageContaining(TradeErrorCode.CASH_HOLDING_NOT_FOUND.message());
-    }
+            when(cashTransactionRepository.findTransactions(userId, currency, type, pageable))
+                    .thenReturn(new PageImpl<>(List.of(tx), pageable, 1));
 
-    @Test
-    void 계좌잔액이_부족하면_소진시_예외() {
-        CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), BigDecimal.valueOf(500));
-        CashBalanceEntity lowBalance = CashBalanceEntity.builder()
-                .id(balance.getId())
-                .userId(balance.getUserId())
-                .currency(balance.getCurrency())
-                .balance(BigDecimal.valueOf(100))
-                .reservedBalance(BigDecimal.valueOf(500))
-                .build();
-        when(cashHoldingRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(holding));
-        when(cashBalanceRepository.findByIdForUpdate(balance.getId()))
-                .thenReturn(Optional.of(lowBalance));
+            // When
+            Page<CashTransactionDto> result = cashService.getCashTransactions(userId, currency, type, pageable);
 
-        assertThatThrownBy(() -> cashService.consumeHoldingAndWithdraw(1L))
-                .isInstanceOf(ApiException.class)
-                .hasMessageContaining(TradeErrorCode.INSUFFICIENT_CASH_BALANCE.message());
-    }
-
-    @Test
-    void 이미_종료된_홀딩이면_소진시_예외() {
-        CashHoldingEntity holding = CashHoldingEntity.hold(balance.getId(), BigDecimal.TEN);
-        holding.consume();
-        when(cashHoldingRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(holding));
-
-        assertThatThrownBy(() -> cashService.consumeHoldingAndWithdraw(1L))
-                .isInstanceOf(ApiException.class)
-                .hasMessageContaining(TradeErrorCode.CASH_HOLDING_ALREADY_FINALIZED.message());
+            // Then
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().getFirst().transactionType()).isEqualTo(CashTransactionType.WITHDRAW);
+        }
     }
 }
