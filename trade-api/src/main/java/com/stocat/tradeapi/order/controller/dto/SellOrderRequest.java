@@ -44,8 +44,8 @@ public record SellOrderRequest(
     }
 
     public SellOrderCommand toCommand(Long userId, LocalDateTime now) {
-        OrderType orderType = OrderType.valueOf(this.orderType);
-        OrderTif orderTif = OrderTif.valueOf(this.orderTif);
+        OrderType orderType = OrderType.from(this.orderType);
+        OrderTif orderTif = OrderTif.from(this.orderTif);
 
         return SellOrderCommand.builder()
                 .userId(userId)
