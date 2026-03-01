@@ -2,11 +2,8 @@ package com.stocat.tradeapi.order.service;
 
 import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
-import com.stocat.common.exception.ApiException;
-import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.fill.dto.FillBuyOrderCommand;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
-import com.stocat.tradeapi.order.service.dto.command.OrderCancelCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
@@ -19,18 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderService {
     private final OrderQueryService orderQueryService;
     private final OrderCommandService orderCommandService;
-
-    @Transactional
-    public OrderDto cancelOrder(OrderCancelCommand command) {
-        Order order = orderQueryService.findByIdForUpdate(command.orderId());
-
-        if (!order.getUserId().equals(command.userId())) {
-            throw new ApiException(TradeErrorCode.ORDER_PERMISSION_DENIED);
-        }
-
-        order = orderCommandService.updateOrderStatus(order, OrderStatus.CANCELED);
-        return OrderDto.from(order);
-    }
 
     @Transactional
     public OrderDto fillBuyOrder(FillBuyOrderCommand command) {

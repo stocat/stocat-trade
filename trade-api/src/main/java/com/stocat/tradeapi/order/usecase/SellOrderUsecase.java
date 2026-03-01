@@ -24,7 +24,12 @@ public class SellOrderUsecase {
         isValidSellOrderQuantity(command.quantity());
 
         OrderDto orderDto = sellOrderFacade.processSellOrder(command, asset);
-        matchApiClient.submitSellOrder(SellOrderSubmissionRequest.from(orderDto));
+        try {
+            matchApiClient.submitSellOrder(SellOrderSubmissionRequest.from(orderDto));
+        } catch (Exception e) {
+            sellOrderFacade.cancelSellOrder(orderDto.id());
+            throw new ApiException(TradeErrorCode.MATCH_API_ERROR);
+        }
         return orderDto;
     }
 
