@@ -32,11 +32,11 @@ public record SellOrderRequest(
 ) {
     @AssertTrue(message = "지정가 주문은 희망 매도 가격이 필수입니다.")
     private boolean isPriceValid() {
-        if (orderType.equals("LIMIT")) {
+        if ("LIMIT".equals(orderType)) {
             return price != null && price.compareTo(BigDecimal.ZERO) > 0;
         }
 
-        if (orderType.equals("MARKET")) {
+        if ("MARKET".equals(orderType)) {
             return price == null;
         }
 
