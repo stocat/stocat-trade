@@ -3,11 +3,14 @@ package com.stocat.tradeapi.order.controller;
 import com.stocat.common.response.ApiResponse;
 import com.stocat.tradeapi.order.controller.dto.BuyOrderRequest;
 import com.stocat.tradeapi.order.controller.dto.OrderResponse;
+import com.stocat.tradeapi.order.controller.dto.SellOrderRequest;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
 import com.stocat.tradeapi.order.service.dto.command.OrderCancelCommand;
+import com.stocat.tradeapi.order.service.dto.command.SellOrderCommand;
 import com.stocat.tradeapi.order.usecase.BuyOrderUsecase;
 import com.stocat.tradeapi.order.usecase.CancelOrderUsecase;
+import com.stocat.tradeapi.order.usecase.SellOrderUsecase;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OrderController {
     private final BuyOrderUsecase buyOrderUsecase;
+    private final SellOrderUsecase sellOrderUsecase;
     private final CancelOrderUsecase cancelOrderUsecase;
 
     @PostMapping("/buy")
@@ -42,6 +46,22 @@ public class OrderController {
         BuyOrderCommand command = request.toCommand(userId, now);
 
         OrderResponse response = OrderResponse.from(buyOrderUsecase.placeBuyOrder(command));
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/sell")
+    @Operation(summary = "매도 주문 생성")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "매도 주문 생성 성공")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "포지션 부족 등")
+    public ResponseEntity<ApiResponse<OrderResponse>> placeSellOrder(
+            @RequestHeader("X-MEMBER-ID") Long userId,
+            @Valid @RequestBody SellOrderRequest request
+    ) {
+        LocalDateTime now = LocalDateTime.now();
+        SellOrderCommand command = request.toCommand(userId, now);
+
+        OrderResponse response = OrderResponse.from(sellOrderUsecase.placeSellOrder(command));
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
