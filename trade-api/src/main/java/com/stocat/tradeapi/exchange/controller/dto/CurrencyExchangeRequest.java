@@ -10,11 +10,11 @@ import java.math.BigDecimal;
 
 public record CurrencyExchangeRequest(
         @NotNull
-        @Schema(description = "출금 통화", example = "KRW")
+        @Schema(description = "출금 통화", example = "KRW | USD")
         Currency fromCurrency,
 
         @NotNull
-        @Schema(description = "입금 통화", example = "USD")
+        @Schema(description = "입금 통화", example = "KRW | USD")
         Currency toCurrency,
 
         @NotNull @Positive

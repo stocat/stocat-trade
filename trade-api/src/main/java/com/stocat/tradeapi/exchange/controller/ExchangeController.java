@@ -1,15 +1,19 @@
 package com.stocat.tradeapi.exchange.controller;
 
+import com.stocat.common.domain.Currency;
 import com.stocat.common.response.ApiResponse;
 import com.stocat.tradeapi.common.dto.PageResponse;
 import com.stocat.tradeapi.exchange.controller.dto.CurrencyExchangeRequest;
 import com.stocat.tradeapi.exchange.controller.dto.ExchangeHistoryResponse;
+import com.stocat.tradeapi.exchange.controller.dto.ExchangePreviewResponse;
 import com.stocat.tradeapi.exchange.service.ExchangeHistoryService;
 import com.stocat.tradeapi.exchange.service.dto.ExchangeHistoryDto;
+import com.stocat.tradeapi.exchange.service.dto.ExchangePreviewDto;
 import com.stocat.tradeapi.exchange.usecase.CurrencyExchangeUsecase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -48,6 +53,17 @@ public class ExchangeController {
     ) {
         ExchangeHistoryDto result = currencyExchangeUsecase.exchange(request.toCommand(userId));
         return ResponseEntity.ok(ApiResponse.success(ExchangeHistoryResponse.from(result)));
+    }
+
+    @GetMapping("/preview")
+    @Operation(summary = "환전 미리보기", description = "잔고 변경 없이 환전 예상 금액과 적용 환율을 반환합니다.")
+    public ResponseEntity<ApiResponse<ExchangePreviewResponse>> preview(
+            @NotNull @RequestParam Currency fromCurrency,
+            @NotNull @RequestParam Currency toCurrency,
+            @NotNull @Positive @RequestParam BigDecimal fromAmount
+    ) {
+        ExchangePreviewDto preview = exchangeHistoryService.preview(fromCurrency, toCurrency, fromAmount);
+        return ResponseEntity.ok(ApiResponse.success(new ExchangePreviewResponse(preview.toAmount(), preview.exchangeRate())));
     }
 
     @GetMapping("/history")

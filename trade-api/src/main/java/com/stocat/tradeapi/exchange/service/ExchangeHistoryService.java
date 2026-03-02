@@ -1,9 +1,13 @@
 package com.stocat.tradeapi.exchange.service;
 
 import com.stocat.common.domain.Currency;
+import com.stocat.common.exception.ApiException;
 import com.stocat.common.redis.repository.ExchangeRateRedisRepository;
+import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.exchange.service.dto.ExchangeCommand;
 import com.stocat.tradeapi.exchange.service.dto.ExchangeHistoryDto;
+import com.stocat.tradeapi.exchange.service.dto.ExchangePreviewDto;
+import java.math.RoundingMode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +29,13 @@ public class ExchangeHistoryService {
     public Optional<BigDecimal> findRate(Currency fromCurrency, Currency toCurrency) {
         String pair = fromCurrency.name() + toCurrency.name();
         return exchangeRateRedisRepository.findRate(pair);
+    }
+
+    public ExchangePreviewDto preview(Currency fromCurrency, Currency toCurrency, BigDecimal fromAmount) {
+        BigDecimal rate = findRate(fromCurrency, toCurrency)
+                .orElseThrow(() -> new ApiException(TradeErrorCode.EXCHANGE_RATE_NOT_FOUND));
+        BigDecimal toAmount = fromAmount.multiply(rate).setScale(8, RoundingMode.HALF_UP);
+        return new ExchangePreviewDto(toAmount, rate);
     }
 
     @Transactional
