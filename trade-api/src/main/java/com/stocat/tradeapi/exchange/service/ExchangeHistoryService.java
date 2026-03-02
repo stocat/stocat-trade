@@ -2,10 +2,10 @@ package com.stocat.tradeapi.exchange.service;
 
 import com.stocat.common.domain.Currency;
 import com.stocat.common.redis.repository.ExchangeRateRedisRepository;
-import com.stocat.tradeapi.common.dto.PageResponse;
 import com.stocat.tradeapi.exchange.service.dto.ExchangeCommand;
 import com.stocat.tradeapi.exchange.service.dto.ExchangeHistoryDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,12 +37,12 @@ public class ExchangeHistoryService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<ExchangeHistoryDto> getExchangeHistories(
+    public Page<ExchangeHistoryDto> getExchangeHistories(
             Long userId,
             LocalDateTime from,
             LocalDateTime to,
             Pageable pageable
     ) {
-        return new PageResponse<>(exchangeHistoryQueryService.getExchangeHistories(userId, from, to, pageable));
+        return exchangeHistoryQueryService.getExchangeHistories(userId, from, to, pageable);
     }
 }
