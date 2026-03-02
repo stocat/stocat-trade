@@ -33,8 +33,13 @@ public class CurrencyExchangeUsecase {
         Currency fromCurrency = Currency.valueOf(lock.fromCurrency());
         Currency toCurrency = Currency.valueOf(lock.toCurrency());
 
-        ExchangeCommand exchangeCommand = new ExchangeCommand(
-                command.userId(), fromCurrency, toCurrency, lock.fromAmount(), lock.toAmount());
+        ExchangeCommand exchangeCommand = ExchangeCommand.builder()
+                .userId(command.userId())
+                .fromCurrency(fromCurrency)
+                .toCurrency(toCurrency)
+                .fromAmount(lock.fromAmount())
+                .toAmount(lock.toAmount())
+                .build();
 
         cashService.performExchange(exchangeCommand);
 

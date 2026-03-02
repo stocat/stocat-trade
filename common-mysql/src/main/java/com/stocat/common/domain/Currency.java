@@ -13,6 +13,11 @@ public enum Currency {
         this.category = category;
     }
 
+    /** 현금 잔고가 존재하는 통화(KRW, USD)만 환전이 가능합니다. */
+    public boolean isExchangeable() {
+        return category != null;
+    }
+
     /**
      * Currency에 해당하는 자산 카테고리를 반환합니다.
      * Asset을 거래할 때 어떤 자산(현금) 카테고리를 예약하거나 수정해야하는 지 알기 위해 사용하는 메소드입니다.

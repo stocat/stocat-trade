@@ -1,5 +1,6 @@
 package com.stocat.tradeapi.exchange.controller;
 
+import com.stocat.common.domain.Currency;
 import com.stocat.common.exception.ApiException;
 import com.stocat.common.response.ApiResponse;
 import com.stocat.tradeapi.common.dto.PageResponse;
@@ -48,9 +49,17 @@ public class ExchangeController {
     public ResponseEntity<ApiResponse<ExchangePreviewResponse>> preview(
             @Valid @ModelAttribute ExchangePreviewRequest request
     ) {
+        validateSameCurrency(request.fromCurrency(), request.toCurrency());
         validateExclusiveAmountParam(request.fromAmount(), request.toAmount());
         return ResponseEntity.ok(ApiResponse.success(
                 ExchangePreviewResponse.from(exchangeHistoryService.preview(request.toQuery()))));
+    }
+
+    /** 출금 통화와 수취 통화가 동일한 경우 예외를 던집니다. */
+    private void validateSameCurrency(Currency fromCurrency, Currency toCurrency) {
+        if (fromCurrency == toCurrency) {
+            throw new ApiException(TradeErrorCode.SAME_CURRENCY_EXCHANGE);
+        }
     }
 
     /**
