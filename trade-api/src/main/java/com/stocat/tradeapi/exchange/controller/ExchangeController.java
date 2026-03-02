@@ -45,6 +45,18 @@ public class ExchangeController {
     private final CurrencyExchangeUsecase currencyExchangeUsecase;
     private final ExchangeHistoryService exchangeHistoryService;
 
+    @GetMapping("/preview")
+    @Operation(summary = "환전 금액 미리보기", description = "잔고 변경 없이 환전 예상 금액과 적용 환율을 반환합니다.")
+    public ResponseEntity<ApiResponse<ExchangePreviewResponse>> preview(
+            @NotNull @RequestParam Currency fromCurrency,
+            @NotNull @RequestParam Currency toCurrency,
+            @NotNull @Positive @RequestParam BigDecimal fromAmount
+    ) {
+        ExchangePreviewDto preview = exchangeHistoryService.preview(fromCurrency, toCurrency, fromAmount);
+        return ResponseEntity.ok(ApiResponse.success(new ExchangePreviewResponse(
+                preview.toAmount(), preview.exchangeRate(), preview.rateLockKey(), preview.expiresIn())));
+    }
+
     @PostMapping
     @Operation(summary = "환전 실행")
     public ResponseEntity<ApiResponse<ExchangeHistoryResponse>> exchange(
@@ -53,17 +65,6 @@ public class ExchangeController {
     ) {
         ExchangeHistoryDto result = currencyExchangeUsecase.exchange(request.toCommand(userId));
         return ResponseEntity.ok(ApiResponse.success(ExchangeHistoryResponse.from(result)));
-    }
-
-    @GetMapping("/preview")
-    @Operation(summary = "환전 미리보기", description = "잔고 변경 없이 환전 예상 금액과 적용 환율을 반환합니다.")
-    public ResponseEntity<ApiResponse<ExchangePreviewResponse>> preview(
-            @NotNull @RequestParam Currency fromCurrency,
-            @NotNull @RequestParam Currency toCurrency,
-            @NotNull @Positive @RequestParam BigDecimal fromAmount
-    ) {
-        ExchangePreviewDto preview = exchangeHistoryService.preview(fromCurrency, toCurrency, fromAmount);
-        return ResponseEntity.ok(ApiResponse.success(new ExchangePreviewResponse(preview.toAmount(), preview.exchangeRate())));
     }
 
     @GetMapping("/history")

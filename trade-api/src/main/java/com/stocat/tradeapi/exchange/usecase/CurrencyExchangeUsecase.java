@@ -1,6 +1,8 @@
 package com.stocat.tradeapi.exchange.usecase;
 
+import com.stocat.common.domain.Currency;
 import com.stocat.common.exception.ApiException;
+import com.stocat.common.redis.dto.ExchangeRateLock;
 import com.stocat.tradeapi.cash.service.CashService;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.exchange.service.ExchangeHistoryService;
@@ -11,9 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
 @Component
 @RequiredArgsConstructor
 public class CurrencyExchangeUsecase {
@@ -21,22 +20,24 @@ public class CurrencyExchangeUsecase {
     private final CashService cashService;
     private final ExchangeHistoryService exchangeHistoryService;
 
+    /**
+     * 환율 고정 키를 검증하고, 잠긴 환율로 환전을 실행한 뒤 내역을 저장합니다.
+     *
+     * @param command userId + rateLockKey
+     */
     @Transactional
     public ExchangeHistoryDto exchange(CurrencyExchangeCommand command) {
-        if (command.fromCurrency() == command.toCurrency()) {
-            throw new ApiException(TradeErrorCode.SAME_CURRENCY_EXCHANGE);
-        }
+        ExchangeRateLock lock = exchangeHistoryService.findAndDeleteLock(command.rateLockKey())
+                .orElseThrow(() -> new ApiException(TradeErrorCode.EXCHANGE_RATE_LOCK_EXPIRED));
 
-        BigDecimal rate = exchangeHistoryService.findRate(command.fromCurrency(), command.toCurrency())
-                .orElseThrow(() -> new ApiException(TradeErrorCode.EXCHANGE_RATE_NOT_FOUND));
-
-        BigDecimal toAmount = command.fromAmount().multiply(rate).setScale(8, RoundingMode.HALF_UP);
+        Currency fromCurrency = Currency.valueOf(lock.fromCurrency());
+        Currency toCurrency = Currency.valueOf(lock.toCurrency());
 
         ExchangeCommand exchangeCommand = new ExchangeCommand(
-                command.userId(), command.fromCurrency(), command.toCurrency(), command.fromAmount(), toAmount);
+                command.userId(), fromCurrency, toCurrency, lock.fromAmount(), lock.toAmount());
 
         cashService.performExchange(exchangeCommand);
 
-        return exchangeHistoryService.save(exchangeCommand, rate);
+        return exchangeHistoryService.save(exchangeCommand, lock.rate());
     }
 }

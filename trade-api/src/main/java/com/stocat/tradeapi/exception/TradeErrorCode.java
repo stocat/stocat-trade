@@ -36,6 +36,7 @@ public enum TradeErrorCode implements ErrorCode {
     // 환전 도메인 (3000~3999)
     EXCHANGE_RATE_NOT_FOUND(ErrorDomain.TRADE_API.offset() + 3000, "환율 정보를 불러올 수 없습니다."),
     SAME_CURRENCY_EXCHANGE(ErrorDomain.TRADE_API.offset() + 3001, "같은 통화 간 환전은 불가합니다."),
+    EXCHANGE_RATE_LOCK_EXPIRED(ErrorDomain.TRADE_API.offset() + 3002, "환율 고정 시간이 만료되었습니다. 환전 미리보기를 다시 시도해 주세요."),
     ;
 
     private final int code;

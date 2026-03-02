@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 
 public record ExchangePreviewDto(
         BigDecimal toAmount,
-        BigDecimal exchangeRate
+        BigDecimal exchangeRate,
+        String rateLockKey,
+        long expiresIn
 ) {
 }
