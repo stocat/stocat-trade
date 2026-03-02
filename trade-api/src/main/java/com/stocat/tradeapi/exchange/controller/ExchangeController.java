@@ -47,12 +47,13 @@ public class ExchangeController {
     @GetMapping("/preview")
     @Operation(summary = "환전 금액 미리보기", description = "잔고 변경 없이 환전 예상 금액과 적용 환율을 반환합니다. fromAmount 또는 toAmount 중 하나만 입력하세요.")
     public ResponseEntity<ApiResponse<ExchangePreviewResponse>> preview(
+            @Positive @RequestHeader("X-MEMBER-ID") Long userId,
             @Valid @ModelAttribute ExchangePreviewRequest request
     ) {
         validateSameCurrency(request.fromCurrency(), request.toCurrency());
         validateExclusiveAmountParam(request.fromAmount(), request.toAmount());
         return ResponseEntity.ok(ApiResponse.success(
-                ExchangePreviewResponse.from(exchangeHistoryService.preview(request.toQuery()))));
+                ExchangePreviewResponse.from(exchangeHistoryService.preview(request.toQuery(userId)))));
     }
 
     /** 출금 통화와 수취 통화가 동일한 경우 예외를 던집니다. */

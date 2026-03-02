@@ -36,7 +36,7 @@ public record ExchangePreviewRequest(
         return toCurrency == null || toCurrency.isExchangeable();
     }
 
-    public ExchangePreviewQuery toQuery() {
-        return new ExchangePreviewQuery(fromCurrency, toCurrency, fromAmount, toAmount);
+    public ExchangePreviewQuery toQuery(Long userId) {
+        return new ExchangePreviewQuery(userId, fromCurrency, toCurrency, fromAmount, toAmount);
     }
 }

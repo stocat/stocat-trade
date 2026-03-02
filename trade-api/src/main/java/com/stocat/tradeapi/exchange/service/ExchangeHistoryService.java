@@ -55,7 +55,7 @@ public class ExchangeHistoryService {
         }
 
         ExchangeRateLock lock = new ExchangeRateLock(
-                query.fromCurrency().name(), query.toCurrency().name(), resolvedFromAmount, resolvedToAmount, rate);
+                query.userId(), query.fromCurrency().name(), query.toCurrency().name(), resolvedFromAmount, resolvedToAmount, rate);
         String rateLockKey = exchangeRateLockRepository.store(lock);
 
         return new ExchangePreviewDto(resolvedFromAmount, resolvedToAmount, rate, rateLockKey, ExchangeRateLockKeys.LOCK_TTL.getSeconds());

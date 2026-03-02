@@ -38,6 +38,7 @@ public enum TradeErrorCode implements ErrorCode {
     SAME_CURRENCY_EXCHANGE(ErrorDomain.TRADE_API.offset() + 3001, "같은 통화 간 환전은 불가합니다."),
     EXCHANGE_RATE_LOCK_EXPIRED(ErrorDomain.TRADE_API.offset() + 3002, "환율 고정 시간이 만료되었습니다. 환전 미리보기를 다시 시도해 주세요."),
     EXCHANGE_PREVIEW_PARAM_INVALID(ErrorDomain.TRADE_API.offset() + 3003, "fromAmount 또는 toAmount 중 하나만 입력해야 합니다."),
+    EXCHANGE_LOCK_UNAUTHORIZED(ErrorDomain.TRADE_API.offset() + 3004, "본인의 환전 미리보기에 대해서만 환전을 실행할 수 있습니다."),
     ;
 
     private final int code;

@@ -30,6 +30,10 @@ public class CurrencyExchangeUsecase {
         ExchangeRateLock lock = exchangeHistoryService.findAndDeleteLock(command.rateLockKey())
                 .orElseThrow(() -> new ApiException(TradeErrorCode.EXCHANGE_RATE_LOCK_EXPIRED));
 
+        if (!lock.userId().equals(command.userId())) {
+            throw new ApiException(TradeErrorCode.EXCHANGE_LOCK_UNAUTHORIZED);
+        }
+
         Currency fromCurrency = Currency.valueOf(lock.fromCurrency());
         Currency toCurrency = Currency.valueOf(lock.toCurrency());
 

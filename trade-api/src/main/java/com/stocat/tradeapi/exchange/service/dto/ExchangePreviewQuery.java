@@ -5,6 +5,7 @@ import com.stocat.common.domain.Currency;
 import java.math.BigDecimal;
 
 public record ExchangePreviewQuery(
+        Long userId,
         Currency fromCurrency,
         Currency toCurrency,
         BigDecimal fromAmount,
