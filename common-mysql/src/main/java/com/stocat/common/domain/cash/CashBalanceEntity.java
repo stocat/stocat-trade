@@ -72,6 +72,30 @@ public class CashBalanceEntity extends BaseEntity {
         reservedBalance = reservedBalance.subtract(amount);
     }
 
+    /**
+     * 가용 잔고(balance - reservedBalance)에서 즉시 출금합니다.
+     *
+     * @param amount 출금할 금액
+     */
+    public void withdraw(BigDecimal amount) {
+        requirePositive(amount);
+        BigDecimal available = balance.subtract(reservedBalance);
+        if (available.compareTo(amount) < 0) {
+            throw new IllegalStateException("insufficient available balance to withdraw");
+        }
+        balance = balance.subtract(amount);
+    }
+
+    /**
+     * 잔고를 즉시 증액합니다.
+     *
+     * @param amount 입금할 금액
+     */
+    public void deposit(BigDecimal amount) {
+        requirePositive(amount);
+        balance = balance.add(amount);
+    }
+
     private void requirePositive(BigDecimal amount) {
         if (amount == null || amount.signum() <= 0) {
             throw new IllegalArgumentException("amount must be positive");

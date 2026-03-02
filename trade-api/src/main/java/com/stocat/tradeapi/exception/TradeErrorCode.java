@@ -32,6 +32,13 @@ public enum TradeErrorCode implements ErrorCode {
     INSUFFICIENT_CASH_BALANCE(ErrorDomain.TRADE_API.offset() + 2002, "가용 현금이 부족합니다."),
     CASH_HOLDING_NOT_FOUND(ErrorDomain.TRADE_API.offset() + 2003, "해당 주문과 연결된 현금 홀딩이 없습니다."),
     CASH_HOLDING_ALREADY_FINALIZED(ErrorDomain.TRADE_API.offset() + 2004, "이미 처리된 현금 홀딩입니다."),
+
+    // 환전 도메인 (3000~3999)
+    EXCHANGE_RATE_NOT_FOUND(ErrorDomain.TRADE_API.offset() + 3000, "환율 정보를 불러올 수 없습니다."),
+    SAME_CURRENCY_EXCHANGE(ErrorDomain.TRADE_API.offset() + 3001, "같은 통화 간 환전은 불가합니다."),
+    EXCHANGE_RATE_LOCK_EXPIRED(ErrorDomain.TRADE_API.offset() + 3002, "환율 고정 시간이 만료되었습니다. 환전 미리보기를 다시 시도해 주세요."),
+    EXCHANGE_PREVIEW_PARAM_INVALID(ErrorDomain.TRADE_API.offset() + 3003, "fromAmount 또는 toAmount 중 하나만 입력해야 합니다."),
+    EXCHANGE_LOCK_UNAUTHORIZED(ErrorDomain.TRADE_API.offset() + 3004, "본인의 환전 미리보기에 대해서만 환전을 실행할 수 있습니다."),
     ;
 
     private final int code;
