@@ -12,6 +12,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
@@ -32,30 +33,24 @@ public class RedisConfig {
     }
 
     /**
-     * Redis 연결 팩토리를 생성합니다.
-     *
-     * @return LettuceConnectionFactory 인스턴스
+     * LettuceConnectionFactory는 Reactive/동기 템플릿을 모두 지원합니다.
      */
     @Primary
     @Bean
-    public ReactiveRedisConnectionFactory redisConnectionFactory(RedisStandaloneConfiguration configuration) {
+    public LettuceConnectionFactory redisConnectionFactory(RedisStandaloneConfiguration configuration) {
         return new LettuceConnectionFactory(configuration);
     }
 
-    /**
-     * 문자열 기반 Redis 템플릿을 생성합니다.
-     *
-     * @param factory Redis 연결 팩토리
-     * @return redisTemplate 인스턴스
-     */
-    @Primary
+    /** Pub/Sub 구독 등 리액티브 연산에 사용합니다. */
     @Bean
-    public ReactiveStringRedisTemplate redisTemplate(
-            ReactiveRedisConnectionFactory factory) {
-        return new ReactiveStringRedisTemplate(
-                factory,
-                RedisSerializationContext.string()
-        );
+    public ReactiveStringRedisTemplate reactiveRedisTemplate(LettuceConnectionFactory factory) {
+        return new ReactiveStringRedisTemplate(factory, RedisSerializationContext.string());
+    }
+
+    /** 환율 조회, 환전 락 등 동기 연산에 사용합니다. */
+    @Bean
+    public StringRedisTemplate stringRedisTemplate(LettuceConnectionFactory factory) {
+        return new StringRedisTemplate(factory);
     }
 
     @Primary

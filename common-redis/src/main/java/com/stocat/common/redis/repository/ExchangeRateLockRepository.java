@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stocat.common.redis.constants.ExchangeRateLockKeys;
 import com.stocat.common.redis.dto.ExchangeRateLock;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -15,7 +15,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ExchangeRateLockRepository {
 
-    private final ReactiveStringRedisTemplate redisTemplate;
+    private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
     /**
@@ -29,9 +29,7 @@ public class ExchangeRateLockRepository {
         String key = ExchangeRateLockKeys.lockKey(uuid);
         try {
             String json = objectMapper.writeValueAsString(lock);
-            redisTemplate.opsForValue()
-                    .set(key, json, ExchangeRateLockKeys.LOCK_TTL)
-                    .block();
+            redisTemplate.opsForValue().set(key, json, ExchangeRateLockKeys.LOCK_TTL);
             return uuid;
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("환전 lock 직렬화 실패", e);
@@ -46,7 +44,7 @@ public class ExchangeRateLockRepository {
      */
     public Optional<ExchangeRateLock> getAndDelete(String uuid) {
         String key = ExchangeRateLockKeys.lockKey(uuid);
-        String json = redisTemplate.opsForValue().getAndDelete(key).block();
+        String json = redisTemplate.opsForValue().getAndDelete(key);
         if (json == null) {
             return Optional.empty();
         }
