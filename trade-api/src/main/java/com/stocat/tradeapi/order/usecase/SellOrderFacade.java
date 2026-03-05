@@ -14,6 +14,7 @@ import com.stocat.tradeapi.order.service.dto.command.SellOrderCommand;
 import com.stocat.tradeapi.position.service.PositionQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -31,7 +32,15 @@ public class SellOrderFacade {
         return OrderDto.from(order);
     }
 
-    @Transactional
+    /**
+     * 매도 주문 취소 및 포지션 예약 해제 (보상 트랜잭션)
+     * <p>
+     * 외부 매칭 엔진 전송 실패 등으로 인해 주문을 취소해야 할 때 호출됩니다. 항상 새로운 트랜잭션(REQUIRES_NEW)으로 실행되어, 호출한 쪽의 트랜잭션 상태와 무관하게 커밋됩니다.
+     * </p>
+     *
+     * @param orderId 취소할 주문 ID
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void cancelSellOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ApiException(TradeErrorCode.ORDER_NOT_FOUND));
