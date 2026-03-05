@@ -12,6 +12,7 @@ import com.stocat.tradeapi.order.usecase.BuyOrderUsecase;
 import com.stocat.tradeapi.order.usecase.CancelOrderUsecase;
 import com.stocat.tradeapi.order.usecase.SellOrderUsecase;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.time.LocalDateTime;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Validated
 @RestController
+@Tag(name = "Order", description = "주문 API")
 @RequestMapping("/order")
 @RequiredArgsConstructor
 public class OrderController {
