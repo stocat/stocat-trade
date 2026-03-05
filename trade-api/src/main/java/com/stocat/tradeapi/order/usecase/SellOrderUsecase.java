@@ -37,8 +37,8 @@ public class SellOrderUsecase {
      */
     @Transactional
     public OrderDto placeSellOrder(SellOrderCommand command) {
-        AssetDto asset = quoteApiClient.fetchAsset(command.assetSymbol());
         isValidSellOrderQuantity(command.quantity());
+        AssetDto asset = quoteApiClient.fetchAsset(command.assetSymbol());
 
         OrderDto orderDto = sellOrderFacade.processSellOrder(command, asset);
 
