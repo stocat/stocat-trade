@@ -28,19 +28,6 @@ public class CashService {
         return cashCommandService.createCashHolding(cashBalanceId, command.amount());
     }
 
-    /**
-     * 현금 홀딩 해제
-     * <p>
-     * 특정 홀딩 ID에 대해 묶여있던 현금을 해제하여 다시 사용 가능한 잔액으로 되돌립니다.
-     * </p>
-     *
-     * @param cashHoldingId 해제할 홀딩 ID
-     */
-    @Transactional
-    public void releaseCashHolding(Long cashHoldingId) {
-        cashCommandService.releaseHolding(cashHoldingId);
-    }
-
     @Transactional
     public void consumeHoldingAndWithdraw(Long cashHoldingId) {
         cashCommandService.consumeHolding(cashHoldingId);
