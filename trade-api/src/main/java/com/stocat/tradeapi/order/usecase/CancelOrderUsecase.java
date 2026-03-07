@@ -22,9 +22,21 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class CancelOrderUsecase {
     private final OrderQueryService orderQueryService;
     private final SellOrderFacade sellOrderFacade;
+    private final BuyOrderFacade buyOrderFacade;
     private final MatchApiFacade matchApiFacade;
     private final ApplicationEventPublisher eventPublisher;
 
+    /**
+     * 주문 취소 요청 처리
+     * <p>
+     * 1. 주문 조회 및 소유자/상태 검증을 수행합니다.
+     * 2. 주문 타입(매수/매도)에 따라 적절한 Facade를 호출하여 내부 상태를 변경합니다.
+     * 3. 트랜잭션 커밋 후 외부 매칭 엔진에 취소 요청을 보내기 위해 이벤트를 발행합니다.
+     * </p>
+     *
+     * @param command 주문 취소 요청 커맨드
+     * @return 취소된 주문 정보
+     */
     @Transactional
     public OrderDto cancelOrder(OrderCancelCommand command) {
         // 1. 주문 검증
@@ -61,7 +73,7 @@ public class CancelOrderUsecase {
             return sellOrderFacade.cancelSellOrder(orderId, userId);
         }
         if (side == TradeSide.BUY) {
-//            TODO: 매수 주문 취소 로직 구현
+            return buyOrderFacade.cancelBuyOrder(orderId, userId);
         }
         throw new ApiException(TradeErrorCode.INVALID_ORDER_SIDE);
     }

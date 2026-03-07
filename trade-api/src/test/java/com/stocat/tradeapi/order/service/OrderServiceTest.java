@@ -73,6 +73,34 @@ class OrderServiceTest {
     }
 
     @Test
+    @DisplayName("매수 주문 취소 시 BuyOrderFacade에 위임하고 이벤트를 발행한다")
+    void cancelOrder_DelegatesToBuyOrderFacadeAndPublishesEvent() {
+        // given
+        Long orderId = 2L;
+        Long userId = 200L;
+        OrderCancelCommand command = new OrderCancelCommand(orderId, userId);
+
+        Order order = mock(Order.class);
+        given(order.getUserId()).willReturn(userId);
+        given(order.getStatus()).willReturn(OrderStatus.PENDING);
+        given(order.getSide()).willReturn(TradeSide.BUY);
+
+        given(orderQueryService.findById(orderId)).willReturn(order);
+
+        OrderDto canceledOrderDto = mock(OrderDto.class);
+        given(canceledOrderDto.status()).willReturn(OrderStatus.CANCELED);
+        given(buyOrderFacade.cancelBuyOrder(orderId, userId)).willReturn(canceledOrderDto);
+
+        // when
+        OrderDto result = cancelOrderUsecase.cancelOrder(command);
+
+        // then
+        assertThat(result.status()).isEqualTo(OrderStatus.CANCELED);
+        verify(buyOrderFacade).cancelBuyOrder(orderId, userId);
+        verify(eventPublisher).publishEvent(any(OrderCanceledEvent.class));
+    }
+
+    @Test
     @DisplayName("주문 취소 시 주문 소유자와 요청자가 다르면 예외가 발생한다")
     void cancelOrder_ThrowsException_WhenUserMismatch() {
         // given
