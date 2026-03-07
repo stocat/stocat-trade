@@ -68,7 +68,7 @@ public class SellOrderFacade {
     }
 
     private OrderDto internalCancelSellOrder(Long orderId, Long userId) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdForUpdate(orderId)
                 .orElseThrow(() -> new ApiException(TradeErrorCode.ORDER_NOT_FOUND));
 
         if (!Objects.equals(order.getUserId(), userId)) {

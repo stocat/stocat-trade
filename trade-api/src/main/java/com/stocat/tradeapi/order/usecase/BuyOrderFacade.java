@@ -34,8 +34,7 @@ public class BuyOrderFacade {
     /**
      * 매수 주문 취소 (사용자 요청)
      * <p>
-     * 사용자가 직접 매수 주문을 취소할 때 호출됩니다.
-     * 주문 상태를 취소(CANCELED)로 변경하고, 해당 주문을 위해 홀딩된 현금을 해제합니다.
+     * 사용자가 직접 매수 주문을 취소할 때 호출됩니다. 주문 상태를 취소(CANCELED)로 변경하고, 해당 주문을 위해 홀딩된 현금을 해제합니다.
      * </p>
      *
      * @param orderId 취소할 주문 ID
@@ -44,7 +43,7 @@ public class BuyOrderFacade {
      */
     @Transactional
     public OrderDto cancelBuyOrder(Long orderId, Long userId) {
-        Order order = orderQueryService.findById(orderId);
+        Order order = orderQueryService.findByIdForUpdate(orderId);
         validateCancelBuyOrder(userId, order);
 
         // 상태 변경 (취소)
