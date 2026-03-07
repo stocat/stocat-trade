@@ -14,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @RequiredArgsConstructor
@@ -29,9 +27,8 @@ public class CancelOrderUsecase {
     /**
      * 주문 취소 요청 처리
      * <p>
-     * 1. 주문 조회 및 소유자/상태 검증을 수행합니다.
-     * 2. 주문 타입(매수/매도)에 따라 적절한 Facade를 호출하여 내부 상태를 변경합니다.
-     * 3. 트랜잭션 커밋 후 외부 매칭 엔진에 취소 요청을 보내기 위해 이벤트를 발행합니다.
+     * 1. 주문 조회 및 소유자/상태 검증을 수행합니다. 2. 주문 타입(매수/매도)에 따라 적절한 Facade를 호출하여 내부 상태를 변경합니다. 3. 트랜잭션 커밋 후 외부 매칭 엔진에 취소 요청을 보내기
+     * 위해 이벤트를 발행합니다.
      * </p>
      *
      * @param command 주문 취소 요청 커맨드
@@ -50,11 +47,6 @@ public class CancelOrderUsecase {
         eventPublisher.publishEvent(new OrderCanceledEvent(canceledOrder));
 
         return canceledOrder;
-    }
-
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleOrderCancellation(OrderCanceledEvent event) {
-        matchApiFacade.submitCancelOrderWithRetry(event);
     }
 
     private void validateCancelOrder(Long userId, Long orderUserId, OrderStatus status) {
