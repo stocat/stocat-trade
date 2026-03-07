@@ -41,11 +41,16 @@ public class OrderEventListener {
 
     /**
      * 주문 취소 완료 이벤트 핸들러
+     * <p>
+     * 주문 취소 트랜잭션이 성공적으로 커밋된 후 실행됩니다. 외부 매칭 엔진으로 주문 취소 요청을 전송합니다. 비동기(@Async)로 실행되어 사용자 응답 지연을 방지합니다.
+     * </p>
      *
      * @param event 주문 취소 완료 이벤트
      */
+    @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOrderCancellation(OrderCanceledEvent event) {
+        log.info("주문 취소 완료, 매칭 엔진에 취소 요청 전송 시작: orderId={}", event.orderDto().id());
         matchApiFacade.submitCancelOrderWithRetry(event);
     }
 }
