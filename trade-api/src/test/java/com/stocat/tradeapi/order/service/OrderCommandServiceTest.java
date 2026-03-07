@@ -6,6 +6,7 @@ import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.repository.OrderRepository;
 import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
+import com.stocat.tradeapi.order.service.dto.command.SellOrderCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static com.stocat.tradeapi.order.OrderFixtureUtils.createUsdAssetDto;
 import static com.stocat.tradeapi.order.OrderFixtureUtils.createBuyOrder;
 import static com.stocat.tradeapi.order.OrderFixtureUtils.createBuyOrderCommand;
+import static com.stocat.tradeapi.order.OrderFixtureUtils.createSellOrderCommand;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -47,6 +49,22 @@ public class OrderCommandServiceTest {
             assertThat(o.getSide()).isEqualTo(TradeSide.BUY);
             assertThat(o.getStatus()).isEqualTo(OrderStatus.PENDING);
             assertThat(o.getCashHoldingId()).isEqualTo(cashHoldingId);
+        });
+    }
+
+    @Test
+    void 매도주문_생성시_현금홀딩없이_SELL_주문이_생성된다() {
+        SellOrderCommand command = createSellOrderCommand();
+        AssetDto asset = createUsdAssetDto();
+        given(orderRepository.save(any(Order.class)))
+                .will(invocation -> invocation.getArgument(0));
+
+        Order saved = orderCommandService.createSellOrder(command, asset);
+
+        assertThat(saved).satisfies(o -> {
+            assertThat(o.getSide()).isEqualTo(TradeSide.SELL);
+            assertThat(o.getStatus()).isEqualTo(OrderStatus.PENDING);
+            assertThat(o.getCashHoldingId()).isNull();
         });
     }
 

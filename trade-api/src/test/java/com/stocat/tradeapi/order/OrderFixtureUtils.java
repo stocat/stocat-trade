@@ -9,6 +9,7 @@ import com.stocat.common.domain.order.OrderTif;
 import com.stocat.common.domain.order.OrderType;
 import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
+import com.stocat.tradeapi.order.service.dto.command.SellOrderCommand;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,6 +31,18 @@ public final class OrderFixtureUtils {
                 .orderType(OrderType.LIMIT)
                 .price(BigDecimal.valueOf(200))
                 .quantity(BigDecimal.valueOf(100))
+                .tif(OrderTif.GTC)
+                .requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
+                .build();
+    }
+
+    public static SellOrderCommand createSellOrderCommand() {
+        return SellOrderCommand.builder()
+                .userId(USER_ID)
+                .assetSymbol("NVDA")
+                .orderType(OrderType.LIMIT)
+                .price(BigDecimal.valueOf(200))
+                .quantity(BigDecimal.valueOf(50))
                 .tif(OrderTif.GTC)
                 .requestTime(LocalDateTime.of(2025, 12, 1, 0, 0, 0))
                 .build();

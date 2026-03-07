@@ -1,6 +1,6 @@
 package com.stocat.tradeapi.infrastructure.matchapi.dto;
 
-public record BuyOrderSubmissionResponse(
+public record SellOrderSubmissionResponse(
         String code
 ) {
     // 임시 검증 로직

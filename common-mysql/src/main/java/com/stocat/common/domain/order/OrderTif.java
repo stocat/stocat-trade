@@ -11,4 +11,12 @@ public enum OrderTif {
     OrderTif(String description) {
         this.description = description;
     }
+
+    public static OrderTif from(String type) {
+        return switch (type) {
+            case "GTC" -> GTC;
+            case "IOC" -> IOC;
+            default -> throw new IllegalArgumentException("Invalid order tif: " + type);
+        };
+    }
 }

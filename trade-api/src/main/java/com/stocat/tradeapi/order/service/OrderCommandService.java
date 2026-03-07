@@ -6,6 +6,7 @@ import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.repository.OrderRepository;
 import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
+import com.stocat.tradeapi.order.service.dto.command.SellOrderCommand;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,22 @@ public class OrderCommandService {
                 .assetId(asset.id())
                 .cashHoldingId(cashHoldingId)
                 .side(TradeSide.BUY)
+                .type(command.orderType())
+                .status(OrderStatus.PENDING)
+                .quantity(command.quantity())
+                .price(command.price())
+                .tif(command.tif())
+                .build();
+
+        return orderRepository.save(order);
+    }
+
+    public Order createSellOrder(SellOrderCommand command, AssetDto asset) {
+        Order order = Order.builder()
+                .userId(command.userId())
+                .assetId(asset.id())
+                .cashHoldingId(null)
+                .side(TradeSide.SELL)
                 .type(command.orderType())
                 .status(OrderStatus.PENDING)
                 .quantity(command.quantity())
