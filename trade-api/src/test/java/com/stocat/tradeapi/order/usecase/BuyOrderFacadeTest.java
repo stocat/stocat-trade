@@ -73,7 +73,7 @@ class BuyOrderFacadeTest {
 
         // Then (트랜잭션 안에서 외부 호출이 없음)
         verify(matchApiClient, never()).submitBuyOrder(any());
-        verify(matchApiClient, never()).submitCancelOrder(any());
+        verify(matchApiClient, never()).cancelOrder(any());
     }
 
     @Test

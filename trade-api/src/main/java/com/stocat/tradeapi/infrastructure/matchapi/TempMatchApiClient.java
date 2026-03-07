@@ -20,7 +20,7 @@ public class TempMatchApiClient implements MatchApiClient {
     }
 
     @Override
-    public void submitCancelOrder(Long orderId) {
+    public void cancelOrder(Long orderId) {
         throw new NotImplementedException();
     }
 }

@@ -14,7 +14,6 @@ import com.stocat.common.domain.order.OrderTif;
 import com.stocat.common.domain.order.OrderType;
 import com.stocat.tradeapi.infrastructure.matchapi.dto.SellOrderSubmissionRequest;
 import com.stocat.tradeapi.infrastructure.matchapi.dto.SellOrderSubmissionResponse;
-import com.stocat.tradeapi.order.event.OrderPlacedEvent;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
 import com.stocat.tradeapi.order.usecase.SellOrderFacade;
 import java.math.BigDecimal;
@@ -68,13 +67,11 @@ class MatchApiFacadeTest {
         given(matchApiClient.submitSellOrder(any(SellOrderSubmissionRequest.class)))
                 .willThrow(new RuntimeException("match api down"));
 
-        OrderPlacedEvent event = new OrderPlacedEvent(orderDto);
-
-        assertThatCode(() -> matchApiFacade.submitSellOrderWithRetry(event))
+        assertThatCode(() -> matchApiFacade.submitSellOrderWithRetry(orderDto))
                 .doesNotThrowAnyException();
 
         verify(matchApiClient, times(3)).submitSellOrder(any(SellOrderSubmissionRequest.class));
-        verify(sellOrderFacade, times(1)).compensateSellOrder(eq(event.orderDto().id()), eq(event.orderDto().userId()));
+        verify(sellOrderFacade, times(1)).cancelSellOrder(eq(orderDto.id()));
     }
 
     @Test
@@ -84,13 +81,11 @@ class MatchApiFacadeTest {
                 .willThrow(new RuntimeException("network glitch again"))
                 .willReturn(new SellOrderSubmissionResponse("success"));
 
-        OrderPlacedEvent event = new OrderPlacedEvent(orderDto);
-
-        assertThatCode(() -> matchApiFacade.submitSellOrderWithRetry(event))
+        assertThatCode(() -> matchApiFacade.submitSellOrderWithRetry(orderDto))
                 .doesNotThrowAnyException();
 
         verify(matchApiClient, times(3)).submitSellOrder(any(SellOrderSubmissionRequest.class));
-        verify(sellOrderFacade, never()).cancelSellOrder(eq(event.orderDto().id()), eq(event.orderDto().userId()));
+        verify(sellOrderFacade, never()).cancelSellOrder(any());
     }
 
     @Configuration
