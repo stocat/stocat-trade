@@ -5,7 +5,7 @@ import com.stocat.common.exception.ApiException;
 import com.stocat.common.redis.dto.ExchangeRateLock;
 import com.stocat.tradeapi.cash.service.CashService;
 import com.stocat.tradeapi.exception.TradeErrorCode;
-import com.stocat.tradeapi.exchange.service.ExchangeHistoryService;
+import com.stocat.tradeapi.exchange.service.ExchangeService;
 import com.stocat.tradeapi.exchange.service.dto.ExchangeCommand;
 import com.stocat.tradeapi.exchange.service.dto.ExchangeHistoryDto;
 import com.stocat.tradeapi.exchange.usecase.dto.CurrencyExchangeCommand;
@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CurrencyExchangeUsecase {
 
     private final CashService cashService;
-    private final ExchangeHistoryService exchangeHistoryService;
+    private final ExchangeService exchangeService;
 
     /**
      * 환율 고정 키를 검증하고, 잠긴 환율로 환전을 실행한 뒤 내역을 저장합니다.
@@ -27,7 +27,7 @@ public class CurrencyExchangeUsecase {
      */
     @Transactional
     public ExchangeHistoryDto exchange(CurrencyExchangeCommand command) {
-        ExchangeRateLock lock = exchangeHistoryService.findAndDeleteLock(command.rateLockKey())
+        ExchangeRateLock lock = exchangeService.findAndDeleteLock(command.rateLockKey())
                 .orElseThrow(() -> new ApiException(TradeErrorCode.EXCHANGE_RATE_LOCK_EXPIRED));
 
         if (!lock.userId().equals(command.userId())) {
@@ -47,6 +47,6 @@ public class CurrencyExchangeUsecase {
 
         cashService.performExchange(exchangeCommand);
 
-        return exchangeHistoryService.save(exchangeCommand, lock.rate());
+        return exchangeService.save(exchangeCommand, lock.rate());
     }
 }

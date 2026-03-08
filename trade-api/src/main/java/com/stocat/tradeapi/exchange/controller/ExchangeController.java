@@ -9,7 +9,7 @@ import com.stocat.tradeapi.exchange.controller.dto.ExchangeHistoryResponse;
 import com.stocat.tradeapi.exchange.controller.dto.ExchangeHistorySearchRequest;
 import com.stocat.tradeapi.exchange.controller.dto.ExchangePreviewRequest;
 import com.stocat.tradeapi.exchange.controller.dto.ExchangePreviewResponse;
-import com.stocat.tradeapi.exchange.service.ExchangeHistoryService;
+import com.stocat.tradeapi.exchange.service.ExchangeService;
 import com.stocat.tradeapi.exchange.service.dto.ExchangeHistoryDto;
 import com.stocat.tradeapi.exchange.service.dto.ExchangeHistoryQuery;
 import com.stocat.tradeapi.exchange.usecase.CurrencyExchangeUsecase;
@@ -42,7 +42,7 @@ import java.math.BigDecimal;
 public class ExchangeController {
 
     private final CurrencyExchangeUsecase currencyExchangeUsecase;
-    private final ExchangeHistoryService exchangeHistoryService;
+    private final ExchangeService exchangeService;
 
     @GetMapping("/preview")
     @Operation(summary = "환전 금액 미리보기", description = "잔고 변경 없이 환전 예상 금액과 적용 환율을 반환합니다. fromAmount 또는 toAmount 중 하나만 입력하세요.")
@@ -53,7 +53,7 @@ public class ExchangeController {
         validateSameCurrency(request.fromCurrency(), request.toCurrency());
         validateExclusiveAmountParam(request.fromAmount(), request.toAmount());
         return ResponseEntity.ok(ApiResponse.success(
-                ExchangePreviewResponse.from(exchangeHistoryService.preview(request.toQuery(userId)))));
+                ExchangePreviewResponse.from(exchangeService.preview(request.toQuery(userId)))));
     }
 
     /** 출금 통화와 수취 통화가 동일한 경우 예외를 던집니다. */
@@ -91,7 +91,7 @@ public class ExchangeController {
             @PageableDefault(size = 20) Pageable pageable
     ) {
         ExchangeHistoryQuery query = request.toQuery(userId, pageable);
-        Page<ExchangeHistoryDto> histories = exchangeHistoryService.getExchangeHistories(query);
+        Page<ExchangeHistoryDto> histories = exchangeService.getExchangeHistories(query);
         return ResponseEntity.ok(ApiResponse.success(new PageResponse<>(histories.map(ExchangeHistoryResponse::from))));
     }
 }

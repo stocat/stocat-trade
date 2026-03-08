@@ -23,7 +23,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class ExchangeHistoryService {
+public class ExchangeService {
 
     private final ExchangeRateRedisRepository exchangeRateRedisRepository;
     private final ExchangeRateLockRepository exchangeRateLockRepository;
@@ -37,7 +37,7 @@ public class ExchangeHistoryService {
     }
 
     /**
-     * 환전 예상 금액을 계산하고, 적용 환율을 30초간 Redis에 고정하여 잠금 키를 반환합니다.
+     * 환전 예상 금액을 계산하고, 적용 환율을 60초간 Redis에 고정하여 잠금 키를 반환합니다.
      * fromAmount 또는 toAmount 중 하나만 전달하면 나머지를 역산합니다.
      */
     public ExchangePreviewDto preview(ExchangePreviewQuery query) {
