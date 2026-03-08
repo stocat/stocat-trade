@@ -77,6 +77,7 @@ public class CashBalanceEntity extends BaseEntity {
      *
      * @param amount 출금할 금액
      */
+    // TODO: 기존 메소드와 리팩토링
     public void withdraw(BigDecimal amount) {
         requirePositive(amount);
         BigDecimal available = balance.subtract(reservedBalance);
