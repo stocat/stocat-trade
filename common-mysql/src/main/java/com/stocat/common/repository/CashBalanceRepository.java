@@ -3,6 +3,7 @@ package com.stocat.common.repository;
 import com.stocat.common.domain.Currency;
 import com.stocat.common.domain.cash.CashBalanceEntity;
 import jakarta.persistence.LockModeType;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -23,4 +24,11 @@ public interface CashBalanceRepository extends JpaRepository<CashBalanceEntity, 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select c from CashBalanceEntity c where c.id = :id")
     Optional<CashBalanceEntity> findByIdForUpdate(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from CashBalanceEntity c where c.userId = :userId and c.currency in :currencies order by c.currency asc")
+    List<CashBalanceEntity> findByUserIdAndCurrencyInForUpdate(
+            @Param("userId") Long userId,
+            @Param("currencies") List<Currency> currencies
+    );
 }
