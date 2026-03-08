@@ -12,7 +12,6 @@ import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.exception.TradeErrorCode;
-import com.stocat.tradeapi.infrastructure.matchapi.MatchApiFacade;
 import com.stocat.tradeapi.order.event.OrderCanceledEvent;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
 import com.stocat.tradeapi.order.service.dto.command.OrderCancelCommand;
@@ -39,8 +38,7 @@ class OrderServiceTest {
     private SellOrderFacade sellOrderFacade;
     @Mock
     private BuyOrderFacade buyOrderFacade;
-    @Mock
-    private MatchApiFacade matchApiFacade;
+
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
@@ -61,14 +59,14 @@ class OrderServiceTest {
 
         OrderDto canceledOrderDto = mock(OrderDto.class);
         given(canceledOrderDto.status()).willReturn(OrderStatus.CANCELED);
-        given(sellOrderFacade.cancelSellOrder(orderId, userId)).willReturn(canceledOrderDto);
+        given(sellOrderFacade.cancelSellOrder(order)).willReturn(canceledOrderDto);
 
         // when
         OrderDto result = cancelOrderUsecase.cancelOrder(command);
 
         // then
         assertThat(result.status()).isEqualTo(OrderStatus.CANCELED);
-        verify(sellOrderFacade).cancelSellOrder(orderId, userId);
+        verify(sellOrderFacade).cancelSellOrder(order);
         verify(eventPublisher).publishEvent(any(OrderCanceledEvent.class));
     }
 
@@ -89,14 +87,14 @@ class OrderServiceTest {
 
         OrderDto canceledOrderDto = mock(OrderDto.class);
         given(canceledOrderDto.status()).willReturn(OrderStatus.CANCELED);
-        given(buyOrderFacade.cancelBuyOrder(orderId, userId)).willReturn(canceledOrderDto);
+        given(buyOrderFacade.cancelBuyOrder(order)).willReturn(canceledOrderDto);
 
         // when
         OrderDto result = cancelOrderUsecase.cancelOrder(command);
 
         // then
         assertThat(result.status()).isEqualTo(OrderStatus.CANCELED);
-        verify(buyOrderFacade).cancelBuyOrder(orderId, userId);
+        verify(buyOrderFacade).cancelBuyOrder(order);
         verify(eventPublisher).publishEvent(any(OrderCanceledEvent.class));
     }
 

@@ -5,14 +5,13 @@ import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.domain.position.PositionEntity;
 import com.stocat.common.exception.ApiException;
-import com.stocat.common.repository.OrderRepository;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.service.OrderCommandService;
+import com.stocat.tradeapi.order.service.OrderQueryService;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
 import com.stocat.tradeapi.order.service.dto.command.SellOrderCommand;
 import com.stocat.tradeapi.position.service.PositionQueryService;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -29,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SellOrderFacade {
     private final OrderCommandService orderCommandService;
     private final PositionQueryService positionQueryService;
-    private final OrderRepository orderRepository;
+    private final OrderQueryService orderQueryService;
 
     @Transactional
     public OrderDto processSellOrder(SellOrderCommand command, AssetDto asset) {
@@ -45,12 +44,11 @@ public class SellOrderFacade {
      * 사용자가 직접 주문을 취소할 때 호출됩니다. 호출한 쪽의 트랜잭션에 참여합니다.
      * </p>
      *
-     * @param orderId 취소할 주문 ID
-     * @param userId  유저 ID
+     * @param order 취소할 주문
      */
     @Transactional
-    public OrderDto cancelSellOrder(Long orderId, Long userId) {
-        return internalCancelSellOrder(orderId, userId);
+    public OrderDto cancelSellOrder(Order order) {
+        return internalCancelSellOrder(order);
     }
 
     /**
@@ -60,28 +58,15 @@ public class SellOrderFacade {
      * </p>
      *
      * @param orderId 취소할 주문 ID
-     * @param userId  유저 ID
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void compensateSellOrder(Long orderId, Long userId) {
-        internalCancelSellOrder(orderId, userId);
+    public void compensateSellOrder(Long orderId) {
+        Order order = orderQueryService.findByIdForUpdate(orderId);
+        internalCancelSellOrder(order);
     }
 
-    private OrderDto internalCancelSellOrder(Long orderId, Long userId) {
-        Order order = orderRepository.findByIdForUpdate(orderId)
-                .orElseThrow(() -> new ApiException(TradeErrorCode.ORDER_NOT_FOUND));
-
-        if (!Objects.equals(order.getUserId(), userId)) {
-            throw new ApiException(TradeErrorCode.ORDER_NOT_FOUND);
-        }
-
-        if (order.getStatus() != OrderStatus.PENDING) {
-            throw new ApiException(TradeErrorCode.INVALID_ORDER_STATUS);
-        }
-
-        if (order.getSide() != TradeSide.SELL) {
-            throw new ApiException(TradeErrorCode.INVALID_ORDER_SIDE);
-        }
+    private OrderDto internalCancelSellOrder(Order order) {
+        validateCancelSellOrder(order.getStatus(), order.getSide());
 
         // 상태 변경 (취소)
         orderCommandService.updateOrderStatus(order, OrderStatus.CANCELED);
@@ -101,5 +86,15 @@ public class SellOrderFacade {
                 .orElseThrow(() -> new ApiException(TradeErrorCode.POSITION_NOT_FOUND_FOR_SELL));
 
         position.reserve(command.quantity());
+    }
+
+    private void validateCancelSellOrder(OrderStatus status, TradeSide side) {
+        if (status != OrderStatus.PENDING) {
+            throw new ApiException(TradeErrorCode.INVALID_ORDER_STATUS);
+        }
+
+        if (side != TradeSide.SELL) {
+            throw new ApiException(TradeErrorCode.INVALID_ORDER_SIDE);
+        }
     }
 }

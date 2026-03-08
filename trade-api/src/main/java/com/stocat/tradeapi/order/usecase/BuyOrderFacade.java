@@ -9,10 +9,8 @@ import com.stocat.tradeapi.cash.service.dto.command.CreateCashHoldingCommand;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.service.OrderCommandService;
-import com.stocat.tradeapi.order.service.OrderQueryService;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
 import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class BuyOrderFacade {
     private final CashService cashService;
-    private final OrderQueryService orderQueryService;
     private final OrderCommandService orderCommandService;
 
     @Transactional
@@ -37,14 +34,12 @@ public class BuyOrderFacade {
      * 사용자가 직접 매수 주문을 취소할 때 호출됩니다. 주문 상태를 취소(CANCELED)로 변경하고, 해당 주문을 위해 홀딩된 현금을 해제합니다.
      * </p>
      *
-     * @param orderId 취소할 주문 ID
-     * @param userId  요청한 사용자 ID
+     * @param order 취소할 주문
      * @return 취소된 주문 정보
      */
     @Transactional
-    public OrderDto cancelBuyOrder(Long orderId, Long userId) {
-        Order order = orderQueryService.findByIdForUpdate(orderId);
-        validateCancelBuyOrder(userId, order);
+    public OrderDto cancelBuyOrder(Order order) {
+        validateCancelBuyOrder(order.getStatus(), order.getSide());
 
         // 상태 변경 (취소)
         orderCommandService.updateOrderStatus(order, OrderStatus.CANCELED);
@@ -74,16 +69,12 @@ public class BuyOrderFacade {
         cashService.releaseCashHolding(cashHoldingId);
     }
 
-    private void validateCancelBuyOrder(Long userId, Order order) {
-        if (!Objects.equals(order.getUserId(), userId)) {
-            throw new ApiException(TradeErrorCode.ORDER_NOT_FOUND);
-        }
-
-        if (order.getStatus() != OrderStatus.PENDING) {
+    private void validateCancelBuyOrder(OrderStatus status, TradeSide side) {
+        if (status != OrderStatus.PENDING) {
             throw new ApiException(TradeErrorCode.INVALID_ORDER_STATUS);
         }
 
-        if (order.getSide() != TradeSide.BUY) {
+        if (side != TradeSide.BUY) {
             throw new ApiException(TradeErrorCode.INVALID_ORDER_SIDE);
         }
     }

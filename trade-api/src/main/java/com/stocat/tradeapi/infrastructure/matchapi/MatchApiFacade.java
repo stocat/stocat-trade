@@ -54,7 +54,7 @@ public class MatchApiFacade {
     @Recover
     public void recoverSellOrderSubmission(Exception e, OrderPlacedEvent event) {
         log.error("매칭 엔진 전송 최종 실패. 주문을 취소합니다: orderId={}", event.orderDto().id(), e);
-        sellOrderFacade.compensateSellOrder(event.orderDto().id(), event.orderDto().userId());
+        sellOrderFacade.compensateSellOrder(event.orderDto().id());
     }
 
     /**

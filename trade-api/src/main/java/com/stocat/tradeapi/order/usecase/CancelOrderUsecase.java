@@ -5,7 +5,6 @@ import com.stocat.common.domain.order.Order;
 import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.exception.TradeErrorCode;
-import com.stocat.tradeapi.infrastructure.matchapi.MatchApiFacade;
 import com.stocat.tradeapi.order.event.OrderCanceledEvent;
 import com.stocat.tradeapi.order.service.OrderQueryService;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
@@ -21,7 +20,6 @@ public class CancelOrderUsecase {
     private final OrderQueryService orderQueryService;
     private final SellOrderFacade sellOrderFacade;
     private final BuyOrderFacade buyOrderFacade;
-    private final MatchApiFacade matchApiFacade;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -41,7 +39,7 @@ public class CancelOrderUsecase {
         validateCancelOrder(command.userId(), order.getUserId(), order.getStatus());
 
         // 2. 내부 상태 변경 (DB 반영 우선)
-        OrderDto canceledOrder = cancelInternalOrder(command.orderId(), command.userId(), order.getSide());
+        OrderDto canceledOrder = cancelInternalOrder(order);
 
         // 3. 트랜잭션 커밋 후 외부 API 호출을 위해 이벤트 발행
         eventPublisher.publishEvent(new OrderCanceledEvent(canceledOrder));
@@ -60,12 +58,12 @@ public class CancelOrderUsecase {
         }
     }
 
-    private OrderDto cancelInternalOrder(Long orderId, Long userId, TradeSide side) {
-        if (side == TradeSide.SELL) {
-            return sellOrderFacade.cancelSellOrder(orderId, userId);
+    private OrderDto cancelInternalOrder(Order order) {
+        if (order.getSide() == TradeSide.SELL) {
+            return sellOrderFacade.cancelSellOrder(order);
         }
-        if (side == TradeSide.BUY) {
-            return buyOrderFacade.cancelBuyOrder(orderId, userId);
+        if (order.getSide() == TradeSide.BUY) {
+            return buyOrderFacade.cancelBuyOrder(order);
         }
         throw new ApiException(TradeErrorCode.INVALID_ORDER_SIDE);
     }

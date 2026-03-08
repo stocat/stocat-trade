@@ -13,7 +13,6 @@ import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.cash.service.CashService;
 import com.stocat.tradeapi.exception.TradeErrorCode;
 import com.stocat.tradeapi.order.service.OrderCommandService;
-import com.stocat.tradeapi.order.service.OrderQueryService;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,8 +29,7 @@ class BuyOrderFacadeTest {
 
     @Mock
     private CashService cashService;
-    @Mock
-    private OrderQueryService orderQueryService;
+
     @Mock
     private OrderCommandService orderCommandService;
 
@@ -50,10 +48,8 @@ class BuyOrderFacadeTest {
         given(order.getSide()).willReturn(TradeSide.BUY);
         given(order.getCashHoldingId()).willReturn(cashHoldingId);
 
-        given(orderQueryService.findById(orderId)).willReturn(order);
-
         // when
-        OrderDto result = buyOrderFacade.cancelBuyOrder(orderId, userId);
+        OrderDto result = buyOrderFacade.cancelBuyOrder(order);
 
         // then
         assertThat(result.id()).isEqualTo(orderId);
@@ -62,37 +58,14 @@ class BuyOrderFacadeTest {
     }
 
     @Test
-    @DisplayName("주문 소유자가 다르면 예외가 발생한다")
-    void cancelBuyOrder_UserMismatch() {
-        // given
-        Long orderId = 1L;
-        Long userId = 100L;
-        Long otherUserId = 999L;
-
-        Order order = mock(Order.class);
-        given(order.getUserId()).willReturn(otherUserId);
-        given(orderQueryService.findById(orderId)).willReturn(order);
-
-        // when & then
-        assertThatThrownBy(() -> buyOrderFacade.cancelBuyOrder(orderId, userId))
-                .isInstanceOf(ApiException.class)
-                .extracting("errorCode").isEqualTo(TradeErrorCode.ORDER_NOT_FOUND);
-    }
-
-    @Test
     @DisplayName("주문 상태가 PENDING이 아니면 예외가 발생한다")
     void cancelBuyOrder_InvalidStatus() {
         // given
-        Long orderId = 1L;
-        Long userId = 100L;
-
         Order order = mock(Order.class);
-        given(order.getUserId()).willReturn(userId);
         given(order.getStatus()).willReturn(OrderStatus.FILLED); // 이미 체결됨
-        given(orderQueryService.findById(orderId)).willReturn(order);
 
         // when & then
-        assertThatThrownBy(() -> buyOrderFacade.cancelBuyOrder(orderId, userId))
+        assertThatThrownBy(() -> buyOrderFacade.cancelBuyOrder(order))
                 .isInstanceOf(ApiException.class)
                 .extracting("errorCode").isEqualTo(TradeErrorCode.INVALID_ORDER_STATUS);
     }
@@ -101,17 +74,12 @@ class BuyOrderFacadeTest {
     @DisplayName("주문 타입이 BUY가 아니면 예외가 발생한다")
     void cancelBuyOrder_InvalidSide() {
         // given
-        Long orderId = 1L;
-        Long userId = 100L;
-
         Order order = mock(Order.class);
-        given(order.getUserId()).willReturn(userId);
         given(order.getStatus()).willReturn(OrderStatus.PENDING);
         given(order.getSide()).willReturn(TradeSide.SELL); // 매도 주문
-        given(orderQueryService.findById(orderId)).willReturn(order);
 
         // when & then
-        assertThatThrownBy(() -> buyOrderFacade.cancelBuyOrder(orderId, userId))
+        assertThatThrownBy(() -> buyOrderFacade.cancelBuyOrder(order))
                 .isInstanceOf(ApiException.class)
                 .extracting("errorCode").isEqualTo(TradeErrorCode.INVALID_ORDER_SIDE);
     }

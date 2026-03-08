@@ -74,7 +74,7 @@ class MatchApiFacadeTest {
                 .doesNotThrowAnyException();
 
         verify(matchApiClient, times(3)).submitSellOrder(any(SellOrderSubmissionRequest.class));
-        verify(sellOrderFacade, times(1)).compensateSellOrder(eq(event.orderDto().id()), eq(event.orderDto().userId()));
+        verify(sellOrderFacade, times(1)).compensateSellOrder(eq(event.orderDto().id()));
     }
 
     @Test
@@ -90,7 +90,7 @@ class MatchApiFacadeTest {
                 .doesNotThrowAnyException();
 
         verify(matchApiClient, times(3)).submitSellOrder(any(SellOrderSubmissionRequest.class));
-        verify(sellOrderFacade, never()).cancelSellOrder(eq(event.orderDto().id()), eq(event.orderDto().userId()));
+        verify(sellOrderFacade, never()).compensateSellOrder(eq(event.orderDto().id()));
     }
 
     @Configuration
