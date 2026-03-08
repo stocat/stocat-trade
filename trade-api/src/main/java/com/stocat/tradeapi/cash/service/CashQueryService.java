@@ -10,6 +10,9 @@ import com.stocat.common.repository.CashBalanceRepository;
 import com.stocat.common.repository.CashHoldingRepository;
 import com.stocat.common.repository.CashTransactionRepository;
 import com.stocat.tradeapi.exception.TradeErrorCode;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +48,17 @@ public class CashQueryService {
     public CashBalanceEntity getBalanceWithLock(Long userId, Currency currency) {
         return cashBalanceRepository.findByUserIdAndCurrencyForUpdate(userId, currency)
                 .orElseThrow(() -> new ApiException(TradeErrorCode.CASH_BALANCE_NOT_FOUND));
+    }
+
+    @Transactional
+    public Map<Currency, CashBalanceEntity> getBalancesWithLock(Long userId, List<Currency> currencies) {
+        List<CashBalanceEntity> balances = cashBalanceRepository
+                .findByUserIdAndCurrencyInForUpdate(userId, currencies);
+        if (balances.size() != currencies.size()) {
+            throw new ApiException(TradeErrorCode.CASH_BALANCE_NOT_FOUND);
+        }
+        return balances.stream()
+                .collect(Collectors.toMap(CashBalanceEntity::getCurrency, b -> b));
     }
 
     @Transactional

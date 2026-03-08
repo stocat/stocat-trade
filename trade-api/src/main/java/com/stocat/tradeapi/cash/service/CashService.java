@@ -7,6 +7,9 @@ import com.stocat.common.domain.cash.CashTransactionType;
 import com.stocat.tradeapi.cash.service.dto.CashBalanceDto;
 import com.stocat.tradeapi.cash.service.dto.CashTransactionDto;
 import com.stocat.tradeapi.cash.service.dto.command.CreateCashHoldingCommand;
+import com.stocat.tradeapi.exchange.service.dto.ExchangeCommand;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +39,16 @@ public class CashService {
     public CashBalanceDto getCashBalance(Long userId, Currency currency) {
         CashBalanceEntity balance = cashQueryService.getCashBalance(userId, currency);
         return CashBalanceDto.from(balance);
+    }
+
+    @Transactional
+    public void performExchange(ExchangeCommand command) {
+        // 데드락 방지: ORDER BY currency ASC로 DB가 항상 동일한 순서로 락 획득
+        Map<Currency, CashBalanceEntity> balances = cashQueryService
+                .getBalancesWithLock(command.userId(), List.of(Currency.KRW, Currency.USD));
+
+        balances.get(command.fromCurrency()).withdraw(command.fromAmount());
+        balances.get(command.toCurrency()).deposit(command.toAmount());
     }
 
     public Page<CashTransactionDto> getCashTransactions(
