@@ -55,9 +55,8 @@ public class CashCommandService {
     /**
      * 현금 홀딩 해제 (Release)
      * <p>
-     * 1. 홀딩 상태가 유효한지(HOLD) 확인합니다.
-     * 2. 연결된 현금 잔액(CashBalance)에서 예약된 금액(Reserved Balance)을 차감합니다.
-     * 3. 홀딩 데이터(CashHolding)를 삭제합니다.
+     * 1. 홀딩 상태가 유효한지(HOLD) 확인합니다. 2. 연결된 현금 잔액(CashBalance)에서 예약된 금액(Reserved Balance)을 차감합니다. 3. 홀딩 상태를 RELEASED 로
+     * 삭제합니다.
      * </p>
      *
      * @param holdingId 해제할 홀딩 ID
@@ -75,8 +74,8 @@ public class CashCommandService {
         CashBalanceEntity balance = getBalanceForUpdate(holding.getCashBalanceId());
         balance.cancelReservation(holding.getAmount());
 
-        // 홀딩 데이터 삭제
-        cashHoldingRepository.delete(holding);
+        // 홀딩 상태 변경
+        holding.release();
     }
 
     private void saveTransactionHistory(CashBalanceEntity balance, BigDecimal amount, CashTransactionType type) {

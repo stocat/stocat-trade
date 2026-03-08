@@ -53,9 +53,18 @@ public class CashHoldingEntity extends BaseEntity {
     }
 
     public void consume() {
-        if (status != CashHoldingStatus.HOLD) { // HELD 상태에서만 변경 가능
+        validateHoldStatus();
+        status = CashHoldingStatus.CONSUMED;
+    }
+
+    public void release() {
+        validateHoldStatus();
+        status = CashHoldingStatus.RELEASED;
+    }
+
+    private void validateHoldStatus() {
+        if (status != CashHoldingStatus.HOLD) {
             throw new IllegalStateException("holding already finalized");
         }
-        status = CashHoldingStatus.CONSUMED;
     }
 }
