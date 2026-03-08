@@ -15,7 +15,7 @@ public enum Currency {
 
     /** 현금 잔고가 존재하는 통화(KRW, USD)만 환전이 가능합니다. */
     public boolean isExchangeable() {
-        return category != null;
+        return this == KRW || this == USD;
     }
 
     /**
