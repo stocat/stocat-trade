@@ -61,6 +61,7 @@ public class CashCommandService {
      *
      * @param holdingId 해제할 홀딩 ID
      */
+    @Transactional
     public void releaseHolding(Long holdingId) {
         // 홀딩 정보 조회
         CashHoldingEntity holding = getHoldingForUpdate(holdingId);
