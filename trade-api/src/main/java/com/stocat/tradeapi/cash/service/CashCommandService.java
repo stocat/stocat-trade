@@ -1,5 +1,6 @@
 package com.stocat.tradeapi.cash.service;
 
+import com.stocat.common.domain.Currency;
 import com.stocat.common.domain.cash.CashBalanceEntity;
 import com.stocat.common.domain.cash.CashHoldingEntity;
 import com.stocat.common.domain.cash.CashHoldingStatus;
@@ -23,6 +24,18 @@ public class CashCommandService {
     private final CashBalanceRepository cashBalanceRepository;
     private final CashHoldingRepository cashHoldingRepository;
     private final CashTransactionRepository cashTransactionRepository;
+
+    public CashBalanceEntity createWallet(Long userId, Currency currency) {
+        if (cashBalanceRepository.findByUserIdAndCurrency(userId, currency).isPresent()) {
+            throw new ApiException(TradeErrorCode.CASH_BALANCE_ALREADY_EXISTS);
+        }
+        CashBalanceEntity entity = CashBalanceEntity.builder()
+                .userId(userId)
+                .currency(currency)
+                .balance(BigDecimal.ZERO)
+                .build();
+        return cashBalanceRepository.save(entity);
+    }
 
     public Long createCashHolding(Long cashBalanceId, BigDecimal amount) {
         validateAmount(amount);

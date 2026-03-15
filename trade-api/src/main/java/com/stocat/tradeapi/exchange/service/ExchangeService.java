@@ -54,8 +54,14 @@ public class ExchangeService {
             resolvedFromAmount = query.toAmount().divide(rate, 8, RoundingMode.HALF_UP);
         }
 
-        ExchangeRateLock lock = new ExchangeRateLock(
-                query.userId(), query.fromCurrency().name(), query.toCurrency().name(), resolvedFromAmount, resolvedToAmount, rate);
+        ExchangeRateLock lock = ExchangeRateLock.builder()
+                .userId(query.userId())
+                .fromCurrency(query.fromCurrency().name())
+                .toCurrency(query.toCurrency().name())
+                .fromAmount(resolvedFromAmount)
+                .toAmount(resolvedToAmount)
+                .rate(rate)
+                .build();
         String rateLockKey = exchangeRateLockRepository.store(lock);
 
         return new ExchangePreviewDto(resolvedFromAmount, resolvedToAmount, rate, rateLockKey, ExchangeRateLockKeys.LOCK_TTL.getSeconds());

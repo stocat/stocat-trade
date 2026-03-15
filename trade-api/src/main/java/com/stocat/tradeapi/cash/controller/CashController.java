@@ -5,12 +5,14 @@ import com.stocat.common.domain.cash.CashTransactionType;
 import com.stocat.common.response.ApiResponse;
 import com.stocat.tradeapi.cash.controller.dto.CashBalanceResponse;
 import com.stocat.tradeapi.cash.controller.dto.CashTransactionHistoryItemResponse;
+import com.stocat.tradeapi.cash.controller.dto.CreateWalletRequest;
 import com.stocat.tradeapi.cash.service.CashService;
 import com.stocat.tradeapi.cash.service.dto.CashBalanceDto;
 import com.stocat.tradeapi.cash.service.dto.CashTransactionDto;
 import com.stocat.tradeapi.common.dto.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -23,6 +25,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,6 +40,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class CashController {
 
     private final CashService cashService;
+
+    @PostMapping("/wallet")
+    @Operation(summary = "현금 지갑 생성", description = "특정 통화에 대한 현금 지갑을 생성합니다.")
+    public ResponseEntity<ApiResponse<CashBalanceResponse>> createWallet(
+            @Positive @RequestHeader("X-MEMBER-ID") Long userId,
+            @Valid @RequestBody CreateWalletRequest request
+    ) {
+        CashBalanceDto cashBalance = cashService.createWallet(userId, request.currency());
+        return ResponseEntity.ok(ApiResponse.success(CashBalanceResponse.from(cashBalance)));
+    }
 
     @GetMapping("/balance")
     @Operation(

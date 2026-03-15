@@ -25,6 +25,12 @@ public class CashService {
     private final CashQueryService cashQueryService;
 
     @Transactional
+    public CashBalanceDto createWallet(Long userId, Currency currency) {
+        CashBalanceEntity entity = cashCommandService.createWallet(userId, currency);
+        return CashBalanceDto.from(entity);
+    }
+
+    @Transactional
     public Long createCashHolding(CreateCashHoldingCommand command) {
         Long cashBalanceId = cashQueryService.getBalanceId(command.userId(), command.currency());
 
