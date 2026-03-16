@@ -65,6 +65,33 @@ public class CashCommandService {
         saveTransactionHistory(balance, holding.getAmount(), CashTransactionType.WITHDRAW);
     }
 
+    /**
+     * 현금 홀딩 해제 (Release)
+     * <p>
+     * 1. 홀딩 상태가 유효한지(HOLD) 확인합니다. 2. 연결된 현금 잔액(CashBalance)에서 예약된 금액(Reserved Balance)을 차감합니다. 3. 홀딩 상태를 RELEASED 로
+     * 삭제합니다.
+     * </p>
+     *
+     * @param holdingId 해제할 홀딩 ID
+     */
+    @Transactional
+    public void releaseHolding(Long holdingId) {
+        // 홀딩 정보 조회
+        CashHoldingEntity holding = getHoldingForUpdate(holdingId);
+
+        // 이미 처리된 홀딩인지 체크
+        if (holding.getStatus() != CashHoldingStatus.HOLD) {
+            throw new ApiException(TradeErrorCode.CASH_HOLDING_ALREADY_FINALIZED);
+        }
+
+        // 잔액 정보 조회 및 예약금 차감
+        CashBalanceEntity balance = getBalanceForUpdate(holding.getCashBalanceId());
+        balance.cancelReservation(holding.getAmount());
+
+        // 홀딩 상태 변경
+        holding.release();
+    }
+
     private void saveTransactionHistory(CashBalanceEntity balance, BigDecimal amount, CashTransactionType type) {
         CashTransactionEntity transaction = CashTransactionEntity.create(
                 balance.getUserId(),

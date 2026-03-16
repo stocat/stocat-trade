@@ -1,25 +1,20 @@
 package com.stocat.tradeapi.order.usecase;
 
-import static com.stocat.tradeapi.order.OrderFixtureUtils.createBuyOrder;
-import static com.stocat.tradeapi.order.OrderFixtureUtils.createBuyOrderCommand;
-import static com.stocat.tradeapi.order.OrderFixtureUtils.createUsdAssetDto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import com.stocat.common.domain.TradeSide;
 import com.stocat.common.domain.order.Order;
+import com.stocat.common.domain.order.OrderStatus;
 import com.stocat.common.exception.ApiException;
 import com.stocat.tradeapi.cash.service.CashService;
-import com.stocat.tradeapi.cash.service.dto.command.CreateCashHoldingCommand;
 import com.stocat.tradeapi.exception.TradeErrorCode;
-import com.stocat.tradeapi.infrastructure.matchapi.MatchApiClient;
-import com.stocat.tradeapi.infrastructure.quoteapi.dto.AssetDto;
 import com.stocat.tradeapi.order.service.OrderCommandService;
 import com.stocat.tradeapi.order.service.dto.OrderDto;
-import com.stocat.tradeapi.order.service.dto.command.BuyOrderCommand;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,68 +24,63 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class BuyOrderFacadeTest {
 
-    @Mock
-    private CashService cashService;
-    @Mock
-    private OrderCommandService orderCommandService;
-    @Mock
-    private MatchApiClient matchApiClient;
-
     @InjectMocks
     private BuyOrderFacade buyOrderFacade;
 
+    @Mock
+    private CashService cashService;
+
+    @Mock
+    private OrderCommandService orderCommandService;
+
     @Test
-    void 주문처리시_현금홀딩과_주문생성을_순차적으로_호출한다() {
-        // Given
-        BuyOrderCommand command = createBuyOrderCommand();
-        AssetDto asset = createUsdAssetDto();
-        Order order = createBuyOrder(command);
+    @DisplayName("정상적인 매수 주문 취소 요청 시 상태가 변경되고 현금 홀딩이 해제된다")
+    void cancelBuyOrder_Success() {
+        // given
+        Long orderId = 1L;
+        Long userId = 100L;
+        Long cashHoldingId = 500L;
 
-        given(cashService.createCashHolding(any(CreateCashHoldingCommand.class))).willReturn(1L);
-        given(orderCommandService.createBuyOrder(command, asset, 1L)).willReturn(order);
+        Order order = mock(Order.class);
+        given(order.getId()).willReturn(orderId);
+        given(order.getUserId()).willReturn(userId);
+        given(order.getStatus()).willReturn(OrderStatus.PENDING);
+        given(order.getSide()).willReturn(TradeSide.BUY);
+        given(order.getCashHoldingId()).willReturn(cashHoldingId);
 
-        // When
-        OrderDto result = buyOrderFacade.processBuyOrder(command, asset);
+        // when
+        OrderDto result = buyOrderFacade.cancelBuyOrder(order);
 
-        // Then
-        assertThat(result.id()).isEqualTo(order.getId());
-        verify(cashService).createCashHolding(any(CreateCashHoldingCommand.class));
-        verify(orderCommandService).createBuyOrder(command, asset, 1L);
+        // then
+        assertThat(result.id()).isEqualTo(orderId);
+        verify(orderCommandService).updateOrderStatus(order, OrderStatus.CANCELED);
+        verify(cashService).releaseCashHolding(cashHoldingId);
     }
 
     @Test
-    void 주문처리시_외부API는_절대_호출하지_않는다() {
-        // Given
-        BuyOrderCommand command = createBuyOrderCommand();
-        AssetDto asset = createUsdAssetDto();
-        Order order = createBuyOrder(command);
+    @DisplayName("주문 상태가 PENDING이 아니면 예외가 발생한다")
+    void cancelBuyOrder_InvalidStatus() {
+        // given
+        Order order = mock(Order.class);
+        given(order.getStatus()).willReturn(OrderStatus.FILLED); // 이미 체결됨
 
-        given(cashService.createCashHolding(any())).willReturn(1L);
-        given(orderCommandService.createBuyOrder(any(), any(), any())).willReturn(order);
-
-        // When
-        buyOrderFacade.processBuyOrder(command, asset);
-
-        // Then (트랜잭션 안에서 외부 호출이 없음)
-        verify(matchApiClient, never()).submitBuyOrder(any());
-        verify(matchApiClient, never()).cancelOrder(any());
-    }
-
-    @Test
-    void 현금홀딩_실패시_예외가_전파된다() {
-        // Given
-        BuyOrderCommand command = createBuyOrderCommand();
-        AssetDto asset = createUsdAssetDto();
-
-        given(cashService.createCashHolding(any()))
-                .willThrow(new ApiException(TradeErrorCode.INSUFFICIENT_CASH_BALANCE));
-
-        // When & Then
-        assertThatThrownBy(() -> buyOrderFacade.processBuyOrder(command, asset))
+        // when & then
+        assertThatThrownBy(() -> buyOrderFacade.cancelBuyOrder(order))
                 .isInstanceOf(ApiException.class)
-                .hasFieldOrPropertyWithValue("errorCode", TradeErrorCode.INSUFFICIENT_CASH_BALANCE);
+                .extracting("errorCode").isEqualTo(TradeErrorCode.INVALID_ORDER_STATUS);
+    }
 
-        // 주문 생성은 호출되지 않아야 함
-        verify(orderCommandService, never()).createBuyOrder(any(), any(), any());
+    @Test
+    @DisplayName("주문 타입이 BUY가 아니면 예외가 발생한다")
+    void cancelBuyOrder_InvalidSide() {
+        // given
+        Order order = mock(Order.class);
+        given(order.getStatus()).willReturn(OrderStatus.PENDING);
+        given(order.getSide()).willReturn(TradeSide.SELL); // 매도 주문
+
+        // when & then
+        assertThatThrownBy(() -> buyOrderFacade.cancelBuyOrder(order))
+                .isInstanceOf(ApiException.class)
+                .extracting("errorCode").isEqualTo(TradeErrorCode.INVALID_ORDER_SIDE);
     }
 }

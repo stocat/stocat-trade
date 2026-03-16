@@ -7,6 +7,8 @@ import com.stocat.tradeapi.infrastructure.matchapi.dto.SellOrderSubmissionRespon
 
 public interface MatchApiClient {
     BuyOrderSubmissionResponse submitBuyOrder(BuyOrderSubmissionRequest request);
+
     SellOrderSubmissionResponse submitSellOrder(SellOrderSubmissionRequest request);
-    void cancelOrder(Long orderId);
+
+    void submitCancelOrder(Long orderId);
 }
