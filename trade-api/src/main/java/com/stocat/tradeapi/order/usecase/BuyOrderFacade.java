@@ -45,7 +45,7 @@ public class BuyOrderFacade {
         orderCommandService.updateOrderStatus(order, OrderStatus.CANCELED);
 
         // 매수 주문 취소 시 홀딩된 현금 해제
-        releaseCashHolding(order.getCashHoldingId());
+        cashService.releaseCashHolding(order.getCashHoldingId());
 
         return OrderDto.from(order);
     }
@@ -60,13 +60,6 @@ public class BuyOrderFacade {
                 command.price().multiply(command.quantity())
         );
         return cashService.createCashHolding(holdingCommand);
-    }
-
-    private void releaseCashHolding(Long cashHoldingId) {
-        if (cashHoldingId == null) {
-            throw new ApiException(TradeErrorCode.INTERNAL_ERROR);
-        }
-        cashService.releaseCashHolding(cashHoldingId);
     }
 
     private void validateCancelBuyOrder(OrderStatus status, TradeSide side) {

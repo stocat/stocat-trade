@@ -1,6 +1,7 @@
 package com.stocat.tradeapi.order.listener;
 
-import com.stocat.tradeapi.infrastructure.matchapi.MatchApiFacade;
+import com.stocat.tradeapi.infrastructure.matchapi.MatchApiClient;
+import com.stocat.tradeapi.infrastructure.matchapi.dto.SellOrderSubmissionRequest;
 import com.stocat.tradeapi.order.event.OrderCanceledEvent;
 import com.stocat.tradeapi.order.event.OrderPlacedEvent;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class OrderEventListener {
 
-    private final MatchApiFacade matchApiFacade;
+    private final MatchApiClient matchApiClient;
 
     /**
      * 주문 생성 완료 이벤트 핸들러
@@ -36,7 +37,7 @@ public class OrderEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOrderPlaced(OrderPlacedEvent event) {
         log.info("주문 생성 완료, 매칭 엔진에 전송 시작: orderId={}", event.orderDto().id());
-        matchApiFacade.submitSellOrderWithRetry(event);
+        matchApiClient.submitSellOrder(SellOrderSubmissionRequest.from(event.orderDto()));
     }
 
     /**
@@ -51,6 +52,6 @@ public class OrderEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOrderCancellation(OrderCanceledEvent event) {
         log.info("주문 취소 완료, 매칭 엔진에 취소 요청 전송 시작: orderId={}", event.orderDto().id());
-        matchApiFacade.submitCancelOrderWithRetry(event);
+        matchApiClient.submitCancelOrder(event.orderDto().id());
     }
 }
